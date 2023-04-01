@@ -239,10 +239,7 @@ class groupOfVariables:
             return
         self.linear = yes
         for v in self.variables:
-            if yes:
-                v.nonlinearSpec = None
-            else:
-                v.nonlinearSpec = self.nonlinearSpecs[self.selection]
+            v.nonlinearSpec = None if yes else self.nonlinearSpecs[self.selection]
 
     def swapLinear(self):
         """Change the linearity status."""
@@ -291,17 +288,15 @@ class groupOfVariables:
         :rtype: int
         """
         if not self.active:
-            result = -3
+            return -3
         elif self.linear and self.generic:
-            result = -2
-        elif self.linear and not self.generic:
-            result = -1
+            return -2
+        elif self.linear:
+            return -1
         elif self.generic:
-            result = self.selection
+            return self.selection
         else:
-            result = 100 + self.selection
-
-        return result
+            return 100 + self.selection
 
     def setDecisions(self, decision):
         """
@@ -410,9 +405,7 @@ class term:
         :rtype: dict(str: bool)
 
         """
-        if self.segmentation is None:
-            return None
-        return self.segmentation.getDecisions()
+        return None if self.segmentation is None else self.segmentation.getDecisions()
 
     def setDecisions(self, decisions):
         """Implement the specification decisions, represented as a dict,
@@ -616,14 +609,14 @@ class socioEconomic:
 
         combination = []
         for k, v in self.values.items():
-            for triplet in existingValues:
-                combination.append(
-                    (
-                        triplet[0] + [self.expression],
-                        triplet[1] + [k],
-                        triplet[2] + [v],
-                    )
+            combination.extend(
+                (
+                    triplet[0] + [self.expression],
+                    triplet[1] + [k],
+                    triplet[2] + [v],
                 )
+                for triplet in existingValues
+            )
         return combination
 
 
@@ -660,8 +653,7 @@ class segmentation:
         :rtype: dict(str: bool)
 
         """
-        decision = {k: v.active for k, v in self.dictOfSocioEco.items()}
-        return decision
+        return {k: v.active for k, v in self.dictOfSocioEco.items()}
 
     def setDecisions(self, decisions):
         """Implement the specification decisions, represented as a dict,
@@ -690,7 +682,7 @@ class segmentation:
         if self.alwaysActive:
             return True
         activeVariables = sum(
-            [v.active if v is not None else True for v in self.listOfVariables]
+            v.active if v is not None else True for v in self.listOfVariables
         )
         return activeVariables > 0
 
@@ -751,8 +743,7 @@ class segmentation:
         :return: description
         :rtype: str
         """
-        active = [t.name for t in self.dictOfSocioEco.values() if t.active]
-        if active:
+        if active := [t.name for t in self.dictOfSocioEco.values() if t.active]:
             return '<' + ', '.join(active) + '>'
         return ''
 
@@ -1004,7 +995,7 @@ class specificationProblem(vns.problemClass):
         for k, myvars in theGroups.items():
             for v in myvars:
                 check[v] = True
-        for k, c in check.items():
+        for c in check.values():
             if not c:
                 error_msg = (
                     f'Variables not in any group: '
@@ -1125,19 +1116,13 @@ class specificationProblem(vns.problemClass):
         Type: tuple(dict(str: int), dict(str: list(dict(str: bool))), int)
         """
 
-        unused = list()
-        for v in self.theVariables.values():
-            if not v.used:
-                unused.append(v.name)
-        if unused:
+        if unused := [v.name for v in self.theVariables.values() if not v.used]:
             raise excep.biogemeError(
                 f'The following variables ' f'are not used: {unused}'
             )
-        unused = list()
-        for s in self.theSegmentations.values():
-            if not s.used:
-                unused.append(s.name)
-        if unused:
+        if unused := [
+            s.name for s in self.theSegmentations.values() if not s.used
+        ]:
             raise excep.biogemeError(
                 f'The following variables ' f'are not used: {unused}'
             )
@@ -1370,8 +1355,7 @@ class specificationProblem(vns.problemClass):
         :return: a clone
         :rtype: specificationProblem
         """
-        c = copy.deepcopy(self)
-        return c
+        return copy.deepcopy(self)
 
     def describeCurrentModel(self):
         """Generates a description of the current model
@@ -1548,8 +1532,7 @@ class specificationProblem(vns.problemClass):
         :rtype: dict(str: bool)
 
         """
-        av = {k: v(audit=True) != 0 for k, v in self.operators.items()}
-        return av
+        return {k: v(audit=True) != 0 for k, v in self.operators.items()}
 
     def generateNeighbor(self, aSolution, neighborhoodSize):
         """

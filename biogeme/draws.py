@@ -125,13 +125,12 @@ def getLatinHypercubeDraws(
 
     if uniformNumbers is None:
         uniformNumbers = np.random.uniform(size=totalSize)
-    else:
-        if uniformNumbers.size != totalSize:
-            errorMsg = (
-                f'A total of {totalSize} uniform draws '
-                f'must be provided, and not {uniformNumbers.size}.'
-            )
-            raise excep.biogemeError(errorMsg)
+    elif uniformNumbers.size != totalSize:
+        errorMsg = (
+            f'A total of {totalSize} uniform draws '
+            f'must be provided, and not {uniformNumbers.size}.'
+        )
+        raise excep.biogemeError(errorMsg)
 
     uniformNumbers.shape = (totalSize,)
     numbers = np.array(

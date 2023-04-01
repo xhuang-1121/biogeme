@@ -44,22 +44,21 @@ from mev import *
 # \endcode
 # \return Choice probability for the cross-nested logit model.
 #
-def cnl_avail(V,availability,nests,choice) :
-    Gi = {}
-    Gidict = {}
-    for k in V:
-        Gidict[k] = []
+def cnl_avail(V,availability,nests,choice):
+    Gidict = {k: [] for k in V}
     for m in nests:
-        biosumlist = []
-        for i,a in m[1].items():
-            biosumlist.append(Elem({0:0,1:a**(m[0]) * exp(m[0] * (V[i]))},availability[i] != 0))
-        biosum = bioMultSum(biosumlist)        
+        biosumlist = [
+            Elem(
+                {0: 0, 1: a ** (m[0]) * exp(m[0] * (V[i]))},
+                availability[i] != 0,
+            )
+            for i, a in m[1].items()
+        ]
+        biosum = bioMultSum(biosumlist)
         for i,a in m[1].items():
             Gidict[i].append(Elem({0:0,1:(biosum**((1.0/m[0])-1.0)) * (a**m[0]) * exp((m[0]-1.0)*(V[i]))},availability[i] != 0))
-    for k in V:
-        Gi[k] = bioMultSum(Gidict[k])
-    P = mev(V,Gi,availability,choice) 
-    return P
+    Gi = {k: bioMultSum(Gidict[k]) for k in V}
+    return mev(V,Gi,availability,choice)
 
 
 ## Implements the log of the cross-nested logit model as a MEV model. 
@@ -102,22 +101,21 @@ def cnl_avail(V,availability,nests,choice) :
 # \endcode
 # \return Choice probability for the cross-nested logit model.
 #
-def logcnl_avail(V,availability,nests,choice) :
-    Gi = {}
-    Gidict = {}
-    for k in V:
-        Gidict[k] = []
+def logcnl_avail(V,availability,nests,choice):
+    Gidict = {k: [] for k in V}
     for m in nests:
-        biosumlist = []
-        for i,a in m[1].items():
-            biosumlist.append(Elem({0:0,1:a**(m[0]) * exp(m[0] * (V[i]))},availability[i] != 0))
+        biosumlist = [
+            Elem(
+                {0: 0, 1: a ** (m[0]) * exp(m[0] * (V[i]))},
+                availability[i] != 0,
+            )
+            for i, a in m[1].items()
+        ]
         biosum = bioMultSum(biosumlist)
         for i,a in m[1].items():
             Gidict[i].append(Elem({0:0,1:(biosum**((1.0/m[0])-1.0)) * (a**m[0]) * exp((m[0]-1.0)*(V[i]))},availability[i] != 0))
-    for k in V:
-        Gi[k] = bioMultSum(Gidict[k])
-    logP = logmev(V,Gi,availability,choice) 
-    return logP
+    Gi = {k: bioMultSum(Gidict[k]) for k in V}
+    return logmev(V,Gi,availability,choice)
 
 
 ## Implements the cross-nested logit model as a MEV model with the homogeneity parameters is explicitly involved
@@ -160,22 +158,21 @@ def logcnl_avail(V,availability,nests,choice) :
 # \endcode
 # \param bmu Homogeneity parameter \f$\mu\f$.
 # \return Choice probability for the cross-nested logit model.
-def cnlmu(V,availability,nests,choice,bmu) :
-    Gi = {}
-    Gidict = {}
-    for k in V:
-        Gidict[k] = []
+def cnlmu(V,availability,nests,choice,bmu):
+    Gidict = {k: [] for k in V}
     for m in nests:
-        biosumdict = []
-        for i,a in m[1].items():
-            biosumdict.append(Elem({0:0,1:a**(m[0]/bmu) * exp(m[0] * (V[i]))},availability[i] != 0))
+        biosumdict = [
+            Elem(
+                {0: 0, 1: a ** (m[0] / bmu) * exp(m[0] * (V[i]))},
+                availability[i] != 0,
+            )
+            for i, a in m[1].items()
+        ]
         biosum = bioMultSum(biosumdict)
         for i,a in m[1].items():
             Gidict[i].append(Elem({0:0,1:bmu * (biosum**((bmu/m[0])-1.0)) * (a**(m[0]/bmu)) * exp((m[0]-1.0)*(V[i]))},availability[i] != 0))
-    for k in V:
-        Gi[k] = bioMultSum(Gidict[k])
-    P = mev(V,Gi,availability,choice) 
-    return P
+    Gi = {k: bioMultSum(Gidict[k]) for k in V}
+    return mev(V,Gi,availability,choice)
 
 ## Implements the log of the cross-nested logit model as a MEV model with the homogeneity parameters is explicitly involved
 # \ingroup models
@@ -217,20 +214,19 @@ def cnlmu(V,availability,nests,choice,bmu) :
 # \endcode
 # \param bmu Homogeneity parameter \f$\mu\f$.
 # \return Log of choice probability for the cross-nested logit model.
-def logcnlmu(V,availability,nests,choice,bmu) :
-    Gi = {}
-    Gidict = {}
-    for k in V:
-        Gidict[k] = []
+def logcnlmu(V,availability,nests,choice,bmu):
+    Gidict = {k: [] for k in V}
     for m in nests:
-        biosumlist = [] 
-        for i,a in m[1].items():
-            biosumlist.append(Elem({0:0,1:a**(m[0]/bmu) * exp(m[0] * (V[i]))},availability[i] != 0))
+        biosumlist = [
+            Elem(
+                {0: 0, 1: a ** (m[0] / bmu) * exp(m[0] * (V[i]))},
+                availability[i] != 0,
+            )
+            for i, a in m[1].items()
+        ]
         biosum = bioMultSum(biosumlist)
         for i,a in m[1].items():
             Gidict[i].append(Elem({0:0,1:bmu * (biosum**((bmu/m[0])-1.0)) * (a**(m[0]/bmu)) * exp((m[0]-1.0)*(V[i]))},availability[i] != 0))
-    for k in V:
-        Gi[k] = bioMultSum(Gidict[k])
-    logP = logmev(V,Gi,availability,choice) 
-    return logP
+    Gi = {k: bioMultSum(Gidict[k]) for k in V}
+    return logmev(V,Gi,availability,choice)
 

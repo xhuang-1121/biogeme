@@ -156,23 +156,25 @@ if sys.platform == 'win32':
                             '-lstdc++',
                             '-lpthread'])
 
-biogeme_extension = setuptools.Extension('biogeme.cbiogeme',
-                                   ['src/cbiogeme'+ext] + source,
-                                   include_dirs=[numpy.get_include()],
-                                   extra_compile_args=extra_compile_args,
-                                   language='c++11',
-                                   define_macros=[('NPY_NO_DEPRECATED_API',
-                                                   'NPY_1_7_API_VERSION')],
-                                   extra_link_args=extra_link_args)
+biogeme_extension = setuptools.Extension(
+    'biogeme.cbiogeme',
+    [f'src/cbiogeme{ext}'] + source,
+    include_dirs=[numpy.get_include()],
+    extra_compile_args=extra_compile_args,
+    language='c++11',
+    define_macros=[('NPY_NO_DEPRECATED_API', 'NPY_1_7_API_VERSION')],
+    extra_link_args=extra_link_args,
+)
 
-expressions_extension = setuptools.Extension('biogeme.cexpressions',
-                                   ['src/cexpressions'+ext] + source,
-                                   include_dirs=[numpy.get_include()],
-                                   extra_compile_args=extra_compile_args,
-                                   language='c++11',
-                                   define_macros=[('NPY_NO_DEPRECATED_API',
-                                                   'NPY_1_7_API_VERSION')],
-                                   extra_link_args=extra_link_args)
+expressions_extension = setuptools.Extension(
+    'biogeme.cexpressions',
+    [f'src/cexpressions{ext}'] + source,
+    include_dirs=[numpy.get_include()],
+    extra_compile_args=extra_compile_args,
+    language='c++11',
+    define_macros=[('NPY_NO_DEPRECATED_API', 'NPY_1_7_API_VERSION')],
+    extra_link_args=extra_link_args,
+)
 
 extensions = [biogeme_extension, expressions_extension]
 
@@ -192,7 +194,7 @@ if USE_CYTHON:
 
 # WARNING: recently, problems with parallel compilation in cython have
 # been reported. Therefore, this feature is currently turned off.
-    
+
 #    extensions = cythonize(extensions,
 #                           compiler_directives={'language_level' : "3"},
 #                           include_path=[numpy.get_include()],
@@ -200,7 +202,7 @@ if USE_CYTHON:
     extensions = cythonize(extensions,
                            compiler_directives={'language_level' : "3"},
                            include_path=[numpy.get_include()])
-    cmdclass.update({'build_ext': build_ext})
+    cmdclass['build_ext'] = build_ext
 
 #exec(open('biogeme/version.py').read())
 # now we have a `__version__` variable

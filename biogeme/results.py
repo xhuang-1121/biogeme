@@ -43,8 +43,7 @@ def calcPValue(t):
     :return: p-value
     :rtype: float
     """
-    p = 2.0 * (1.0 - stats.norm.cdf(abs(t)))
-    return p
+    return 2.0 * (1.0 - stats.norm.cdf(abs(t)))
 
 
 class beta:
@@ -112,9 +111,7 @@ class beta:
 
         if self.lb is not None and np.abs(self.value - self.lb) <= threshold:
             return True
-        if self.ub is not None and np.abs(self.value - self.ub) <= threshold:
-            return True
-        return False
+        return self.ub is not None and np.abs(self.value - self.ub) <= threshold
 
     def setStdErr(self, se):
         """Records the standard error, and calculates and records
@@ -125,10 +122,7 @@ class beta:
 
         """
         self.stdErr = se
-        if se == 0:
-            self.tTest = np.finfo(float).max
-        else:
-            self.tTest = np.nan_to_num(self.value / se)
+        self.tTest = np.finfo(float).max if se == 0 else np.nan_to_num(self.value / se)
         self.pValue = calcPValue(self.tTest)
 
     def setRobustStdErr(self, se):
@@ -227,7 +221,7 @@ class rawResults:
         """Value of the likelihood function with equal probability model
         """
 
-        self.betas = list()  #: List of objects of type results.beta
+        self.betas = []
 
         for b, n in zip(betaValues, self.betaNames):
             bounds = theModel.getBoundsOnBeta(n)
@@ -375,11 +369,7 @@ class bioResults:
         varJ = matrix[j, j]
         covar = matrix[i, j]
         r = varI + varJ - 2.0 * covar
-        if r <= 0:
-            test = np.finfo(float).max
-        else:
-            test = (vi - vj) / np.sqrt(r)
-        return test
+        return np.finfo(float).max if r <= 0 else (vi - vj) / np.sqrt(r)
 
     def _calculateStats(self):
         """Calculates the following statistics:
@@ -531,7 +521,7 @@ class bioResults:
                         self.data.bootstrap_varCovar, np.finfo(float).max
                     )
 
-            self.data.secondOrderTable = dict()
+            self.data.secondOrderTable = {}
             for i in range(self.data.nparam):
                 for j in range(i):
                     t = self._calculateTest(i, j, self.data.varCovar)
@@ -664,8 +654,7 @@ class bioResults:
         :return: string containing the header.
         :rtype: str
         """
-        h = ''
-        h += '%% This file is designed to be included into a LaTeX document\n'
+        h = '' + '%% This file is designed to be included into a LaTeX document\n'
         h += (
             '%% See http://www.latex-project.org for '
             'information about LaTeX\n'
@@ -721,10 +710,7 @@ class bioResults:
         def formatting(x):
             """Defines the formatting for the to_latex function of pandas"""
             res = f'{x:.3g}'
-            if '.' in res:
-                return res
-
-            return f'{res}.0'
+            return res if '.' in res else f'{res}.0'
 
         h += table.to_latex(float_format=formatting)
 
@@ -747,8 +733,7 @@ class bioResults:
 
         :rtype: dict(string:float,string)
         """
-        d = {}
-        d['Number of estimated parameters'] = self.data.nparam, ''
+        d = {'Number of estimated parameters': (self.data.nparam, '')}
         nf = self.numberOfFreeParameters()
         if nf != self.data.nparam:
             d['Number of free parameters'] = nf, ''
@@ -816,16 +801,13 @@ class bioResults:
         :rtype: str
         """
         d = self.getGeneralStatistics()
-        output = ''
-        for k, (v, p) in d.items():
-            output += f'{k}:\t{v:{p}}\n'
-        return output
+        return ''.join(f'{k}:\t{v:{p}}\n' for k, (v, p) in d.items())
 
     def numberOfFreeParameters(self):
         """This is the number of estimated parameters, minus those that are at
         their bounds
         """
-        return sum([not b.isBoundActive() for b in self.data.betas])
+        return sum(not b.isBoundActive() for b in self.data.betas)
 
     def getEstimatedParameters(self):
         """Gather the estimated parameters and the corresponding statistics in
@@ -912,11 +894,7 @@ class bioResults:
 
         """
         if subset is not None:
-            unknown = []
-            for p in subset:
-                if p not in self.data.betaNames:
-                    unknown.append(p)
-            if unknown:
+            if unknown := [p for p in subset if p not in self.data.betaNames]:
                 self.logger.warning(
                     f'Unknown parameters are ignored: {unknown}'
                 )
@@ -939,10 +917,7 @@ class bioResults:
             ]
         table = pd.DataFrame(columns=columns)
         for k, v in self.data.secondOrderTable.items():
-            if subset is None:
-                include = True
-            else:
-                include = k[0] in subset and k[1] in subset
+            include = True if subset is None else k[0] in subset and k[1] in subset
             if include:
                 arow = {
                     'Covariance': v[0],
@@ -1098,7 +1073,7 @@ class bioResults:
         :raise biogeme.exceptions.biogemeError: if some requested parameters
             are not available.
         """
-        values = dict()
+        values = {}
         if myBetas is None:
             myBetas = self.data.betaNames
         for b in myBetas:
@@ -1106,9 +1081,7 @@ class bioResults:
                 index = self.data.betaNames.index(b)
                 values[b] = self.data.betas[index].value
             except KeyError as e:
-                keys = ''
-                for k in self.data.betaNames:
-                    keys += f' {k}'
+                keys = ''.join(f' {k}' for k in self.data.betaNames)
                 err = (
                     f'The value of {b} is not available in the results. '
                     f'The following parameters are available: {keys}'
@@ -1183,8 +1156,7 @@ class bioResults:
         :return: string containing the header.
         :rtype: str
         """
-        h = ''
-        h += '<html>\n'
+        h = '' + '<html>\n'
         h += '<head>\n'
         h += (
             '<script src="http://transp-or.epfl.ch/biogeme/sorttable.js">'
@@ -1261,13 +1233,10 @@ class bioResults:
         index = [self.data.betaNames.index(b) for b in myBetas]
 
         if useBootstrap:
-            results = [
+            return [
                 {myBetas[i]: value for i, value in enumerate(row)}
                 for row in self.data.bootstrap[:, index]
             ]
-
-            return results
-
         theMatrix = (
             self.data.bootstrap_varCovar
             if useBootstrap
@@ -1279,11 +1248,10 @@ class bioResults:
 
         index = [self.data.betaNames.index(b) for b in myBetas]
 
-        results = [
+        return [
             {myBetas[i]: value for i, value in enumerate(row)}
             for row in simulatedBetas[:, index]
         ]
-        return results
 
     def getF12(self, robustStdErr=True):
         """F12 is a format used by the software ALOGIT to
@@ -1341,11 +1309,8 @@ class bioResults:
             values = table.loc[name]
             results += '   0 '
             results += f'{name[:10]: >10}'
-            if 'Active bound' in values:
-                if values['Active bound'] == 1:
-                    results += ' T'
-                else:
-                    results += ' F'
+            if 'Active bound' in values and values['Active bound'] == 1:
+                results += ' T'
             else:
                 results += ' F'
             results += ' '
@@ -1405,7 +1370,7 @@ class bioResults:
 
         count = 0
         for i, coefi in enumerate(coefNames):
-            for j in range(0, i):
+            for j in range(i):
                 name = (coefi, coefNames[j])
                 if robustStdErr:
                     corr = int(100000 * self.data.secondOrderTable[name][5])

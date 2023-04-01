@@ -39,12 +39,10 @@ class rosenbrock(algo.functionToMinimize):
         if batch is not None:
             raise excep.biogemeError('This function is not data driven.')
         n = len(self.x)
-        f = sum(
-            100.0 * (self.x[i + 1] - self.x[i] ** 2) ** 2
-            + (1.0 - self.x[i]) ** 2
+        return sum(
+            100.0 * (self.x[i + 1] - self.x[i] ** 2) ** 2 + (1.0 - self.x[i]) ** 2
             for i in range(n - 1)
         )
-        return f
 
     def g(self):
         n = len(self.x)

@@ -35,27 +35,26 @@ import builtins
 #4.0 4
 # \endcode
 def histogram(binSize,inputfile,outputfile):
-    f = open(inputfile,'r')
-    data = [[float(x) for x in line.split()] for line in f]
-    flatten = [item for sublist in data for item in sublist]
-    theMin = builtins.min(flatten)
-    theMax = builtins.max(flatten)
-    print("Number of data items: {}".format(len(flatten)))
-    print("Range of data: [{}-{}]".format(theMin,theMax))
-    hist = {}
-    for x in flatten:
-        key = floor(x / binSize) * binSize
-        if key in hist:
-            hist[key] += 1
-        else:
-            hist[key] = 1
-    res = sorted(hist.items())
-    output = open(outputfile,'w')
-    output.write('Value'+' '+'Frequency'+'\n')
-    for k,v in res:
-        s = str(k) + ' ' + str(v) + '\n'
-        output.write(s)
-    f.close()
+    with open(inputfile,'r') as f:
+        data = [[float(x) for x in line.split()] for line in f]
+        flatten = [item for sublist in data for item in sublist]
+        theMin = builtins.min(flatten)
+        theMax = builtins.max(flatten)
+        print(f"Number of data items: {len(flatten)}")
+        print(f"Range of data: [{theMin}-{theMax}]")
+        hist = {}
+        for x in flatten:
+            key = floor(x / binSize) * binSize
+            if key in hist:
+                hist[key] += 1
+            else:
+                hist[key] = 1
+        res = sorted(hist.items())
+        output = open(outputfile,'w')
+        output.write('Value'+' '+'Frequency'+'\n')
+        for k,v in res:
+            s = f'{str(k)} {str(v)}' + '\n'
+            output.write(s)
     output.close()
     return res
 
@@ -92,23 +91,20 @@ def histogram(binSize,inputfile,outputfile):
 #4.0 5.26
 # \endcode
 def weightedhistogram(binSize,inputfile,outputfile):
-    f = open(inputfile,'r')
-    data = []
-    for x in f:
-        data.append(x.split())
-    hist = {}
-    for x in data:
-        key = floor(float(x[0]) / binSize) * binSize
-        if key in hist:
-            hist[key] += float(x[1])
-        else:
-            hist[key] = float(x[1])
-    res = sorted(hist.items())
-    output = open(outputfile,'w')
-    output.write('Value'+' '+'Frequency'+'\n')
-    for k,v in res:
-        s = str(k) + ' ' + str(v) + '\n'
-        output.write(s)
-    f.close()
+    with open(inputfile,'r') as f:
+        data = [x.split() for x in f]
+        hist = {}
+        for x in data:
+            key = floor(float(x[0]) / binSize) * binSize
+            if key in hist:
+                hist[key] += float(x[1])
+            else:
+                hist[key] = float(x[1])
+        res = sorted(hist.items())
+        output = open(outputfile,'w')
+        output.write('Value'+' '+'Frequency'+'\n')
+        for k, v in res:
+            s = f'{str(k)} {str(v)}' + '\n'
+            output.write(s)
     output.close()
     return res

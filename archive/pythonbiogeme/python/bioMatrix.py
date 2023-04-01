@@ -21,17 +21,13 @@ class bioMatrix(object):
         ## Dimension of the (square) matrix
         self.dim = dim
         self.names = names
-        j = 0 
         self.keys = {}
-        for i in names:
+        for j, i in enumerate(names):
             self.keys[i] = j
-            j += 1 
         # initialize matrix and fill with zeroes
         self.matrix = []
         for i in names:
-            ea_row = []
-            for j in range(dim):
-                ea_row.append(values[self.keys[i]][j])
+            ea_row = [values[self.keys[i]][j] for j in range(dim)]
             self.matrix.append(ea_row)
  
     ## Set an entry of the matrix. If it is an off-diagonal entry, the
@@ -53,7 +49,4 @@ class bioMatrix(object):
 
     ## Function called by the print statement
     def __str__(self):
-        outStr = ""
-        for k in self.names:
-            outStr += '%s: %s\n' % (k,self.matrix[self.keys[k]])
-        return outStr
+        return "".join('%s: %s\n' % (k,self.matrix[self.keys[k]]) for k in self.names)

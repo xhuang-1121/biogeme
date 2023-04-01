@@ -11,6 +11,5 @@ from biogeme import *
 # @return value of the weighted log likelihood function 
 def weightedloglikelihood(prob,choice,weight):
     BIOGEME_OBJECT.WEIGHT = weight
-    loglikelihood = log(Elem(prob,choice))
-    return loglikelihood
+    return log(Elem(prob,choice))
 

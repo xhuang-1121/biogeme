@@ -18,8 +18,7 @@ def normalpdf(x,mu=0.0,s=1.0):
     a = d/n
     num = exp(a)
     den = s*2.506628275
-    p = num / den
-    return p
+    return num / den
 
 ## \brief Log normal pdf
 #
@@ -35,8 +34,7 @@ def lognormalpdf(x,mu,s):
     a = d/n
     num = exp(a)
     den = x*s*2.506628275
-    p = (x>0)* num / den
-    return p
+    return (x>0)* num / den
 
 ## \brief Uniform pdf
 #
@@ -47,8 +45,7 @@ def lognormalpdf(x,mu,s):
 # \param b upper bound \f$b\f$ of the distribution (Default: 1)
 # \note It is assumed that \f$a < b \f$, but it is not verified by the code.
 def uniformpdf(x,a=-1,b=1.0):
-    result = (x < a) * 0.0 + (x >= b) * 0.0 + (x >= a) * (x < b) / (b-a)
-    return result
+    return (x < a) * 0.0 + (x >= b) * 0.0 + (x >= a) * (x < b) / (b-a)
 
 ## \brief Triangular pdf
 #
@@ -60,8 +57,19 @@ def uniformpdf(x,a=-1,b=1.0):
 # \param c mode \f$c\f$ of the distribution (Default: 0)
 # \note It is assumed that \f$a < b \f$, and \f$a \leq c \leq b\f$, but it is not verified by the code.
 def triangularpdf(x,a=-1.0,b=1.0,c=0.0):
-    result = (x < a) * 0.0 + (x >= b) * 0.0 + (x >= a) * (x < c) * 2.0 * ((x-a)/((b-a)*(c-a))) *  (x >= c) * (x < b)  * 2.0 * (b-x) / ((b-a)*(b-c))
-    return result
+    return (
+        (x < a) * 0.0
+        + (x >= b) * 0.0
+        + (x >= a)
+        * (x < c)
+        * 2.0
+        * ((x - a) / ((b - a) * (c - a)))
+        * (x >= c)
+        * (x < b)
+        * 2.0
+        * (b - x)
+        / ((b - a) * (b - c))
+    )
 
 ## \brief Logistic CDF
 #
@@ -72,5 +80,4 @@ def triangularpdf(x,a=-1.0,b=1.0,c=0.0):
 # \param s scale parameter \f$\sigma\f$ (Default: 1)
 # \note It is assumed that \f$\sigma > 0\f$, but it is not verified by the code.
 def logisticcdf(x,mu=0.0,s=1.0):
-    result = 1.0 /( 1.0 + exp(-(x-mu)/s))
-    return result
+    return 1.0 /( 1.0 + exp(-(x-mu)/s))

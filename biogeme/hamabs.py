@@ -43,12 +43,11 @@ class smoothing:
                 raise excep.biogemeError(
                     f'Incompatible dimensions {len(g)} and {self.n}'
                 )
-        if h is not None:
-            if h.shape != (self.n, self.n):
-                raise excep.biogemeError(
-                    f'Incompatible dimensions {h.shape} '
-                    f'and ({self.n},{self.n})'
-                )
+        if h is not None and h.shape != (self.n, self.n):
+            raise excep.biogemeError(
+                f'Incompatible dimensions {h.shape} '
+                f'and ({self.n},{self.n})'
+            )
         if batch <= 0.0 or batch > 1.0:
             raise excep.biogemeError(
                 f'Batch size must be between 0 and 1: {batch}'
@@ -74,7 +73,7 @@ class smoothing:
         ]
         normscale = [x / sum(scale) for x in scale]
         f = 0.0
-        for k in range(0, min(len(self.f), self.windowSize)):
+        for k in range(min(len(self.f), self.windowSize)):
             f += normscale[k] * self.f[len(self.f) - k - 1]
 
         if self.n is None:
@@ -85,7 +84,7 @@ class smoothing:
         h = np.zeros((self.n, self.n))
         gscale = 0.0
         hscale = 0.0
-        for k in range(0, min(len(self.f), self.windowSize)):
+        for k in range(min(len(self.f), self.windowSize)):
             i = len(self.f) - k - 1
             if self.g[i] is not None:
                 g += scale[k] * self.g[i]
@@ -94,20 +93,18 @@ class smoothing:
                 h += scale[k] * self.h[i]
                 hscale += scale[k]
 
-        if hscale == 0.0:
-            return f, g / gscale, None
-
-        return f, g / gscale, h / hscale
+        return (f, g / gscale, None) if hscale == 0.0 else (f, g / gscale, h / hscale)
 
 
 def generateCandidateFirstOrder(
     fct, x, f, g, h, batch, delta, dogleg, maxiter, maxDelta, eta1, eta2
 ):
-    for k in range(maxiter):
-        if dogleg:
-            step, _ = opt.dogleg(g, h, delta)
-        else:
-            step, _ = opt.truncatedConjugateGradient(g, h, delta)
+    for _ in range(maxiter):
+        step, _ = (
+            opt.dogleg(g, h, delta)
+            if dogleg
+            else opt.truncatedConjugateGradient(g, h, delta)
+        )
         xc = x + step
         fct.setVariables(xc)
         fc, gc = fct.f_g(batch=batch)
@@ -133,11 +130,12 @@ def generateCandidateSecondOrder(
     fct, x, f, g, h, batch, delta, dogleg, maxiter, maxDelta, eta1, eta2
 ):
     """To be documented..."""
-    for k in range(maxiter):
-        if dogleg:
-            step, _ = opt.dogleg(g, h, delta)
-        else:
-            step, _ = opt.truncatedConjugateGradient(g, h, delta)
+    for _ in range(maxiter):
+        step, _ = (
+            opt.dogleg(g, h, delta)
+            if dogleg
+            else opt.truncatedConjugateGradient(g, h, delta)
+        )
         xc = x + step
         fct.setVariables(xc)
         fc, gc, hc = fct.f_g_h(batch=batch)
@@ -322,23 +320,20 @@ def hamabs(fct, initBetas, fixedBetas, betaIds, bounds, parameters=None):
                 if relgrad <= tol:
                     message = f"Relative gradient = {relgrad} <= {tol}"
                     cont = False
-        else:
-            if batch < 1.0:
-                batch = min(2.0 * batch, 1.0)
-                delta = firstRadius
-                if batch <= hybrid:
-                    fct.setVariables(xk)
-                    f, g, h = fct.f_g_h(batch=batch)
-                    avgf, avgg, avgh = avging.add(f, g, h, batch)
-                else:
-                    fct.setVariables(xk)
-                    f, g = fct.f_g(batch=batch)
-                    avgf, avgg, _ = avging.add(f, g, None, batch)
+        elif batch < 1.0:
+            delta = firstRadius
+            fct.setVariables(xk)
+            batch = min(2.0 * batch, 1.0)
+            if batch <= hybrid:
+                f, g, h = fct.f_g_h(batch=batch)
+                avgf, avgg, avgh = avging.add(f, g, h, batch)
+            else:
+                f, g = fct.f_g(batch=batch)
+                avgf, avgg, _ = avging.add(f, g, None, batch)
 
-        if delta <= minDelta:
-            if batch == 1.0:
-                message = f"Trust region is too small: {delta}"
-                cont = False
+        if delta <= minDelta and batch == 1.0:
+            message = f"Trust region is too small: {delta}"
+            cont = False
 
         if k == maxiter:
             message = f"Maximum number of iterations reached: {maxiter}"

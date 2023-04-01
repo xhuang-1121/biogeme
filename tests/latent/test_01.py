@@ -107,16 +107,17 @@ SIGMA_STAR_Mobil16 = Beta('SIGMA_STAR_Mobil16', 10, 0.001, None, 0)
 SIGMA_STAR_Mobil17 = Beta('SIGMA_STAR_Mobil17', 10, 0.001, None, 0)
 
 
-F = {}
-F['Envir01'] = Elem(
-    {
-        0: 0,
-        1: ll.loglikelihoodregression(
-            Envir01, MODEL_Envir01, SIGMA_STAR_Envir01
-        ),
-    },
-    (Envir01 > 0) * (Envir01 < 6),
-)
+F = {
+    'Envir01': Elem(
+        {
+            0: 0,
+            1: ll.loglikelihoodregression(
+                Envir01, MODEL_Envir01, SIGMA_STAR_Envir01
+            ),
+        },
+        (Envir01 > 0) * (Envir01 < 6),
+    )
+}
 F['Envir02'] = Elem(
     {
         0: 0,

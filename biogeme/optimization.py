@@ -68,7 +68,7 @@ def scipy(fct, initBetas, bounds, parameters=None):
     if parameters is not None:
         opts = {**opts, **parameters}
 
-    if 'gtol' in opts.keys():
+    if 'gtol' in opts:
         logger.general(f'Minimize with tol {opts["gtol"]}')
 
     results = sc.minimize(
@@ -276,13 +276,12 @@ def bfgsLineSearchForBiogeme(fct, initBetas, bounds, parameters=None):
     tol = np.finfo(np.float64).eps ** 0.3333
     maxiter = 100
     initBfgs = None
-    if parameters is not None:
-        if 'tolerance' in parameters:
-            tol = parameters['tolerance']
-            if 'maxiter' in parameters:
-                maxiter = parameters['maxiter']
-            if 'initBfgs' in parameters:
-                initBfgs = parameters['initBfgs']
+    if parameters is not None and 'tolerance' in parameters:
+        tol = parameters['tolerance']
+        if 'maxiter' in parameters:
+            maxiter = parameters['maxiter']
+        if 'initBfgs' in parameters:
+            initBfgs = parameters['initBfgs']
 
     logger.detailed('** Optimization: BFGS with line search')
     return alg.bfgsLineSearch(

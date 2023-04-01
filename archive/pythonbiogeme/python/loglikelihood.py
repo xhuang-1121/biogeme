@@ -11,8 +11,7 @@ from biogeme import *
 # \return The logarithm of the probability.
 #
 def loglikelihood(prob):
-    loglikelihood = log(prob)
-    return loglikelihood
+    return log(prob)
 
 ## Compute a simulated loglikelihood function
 # \ingroup likelihood
@@ -49,8 +48,7 @@ def mixedloglikelihood(prob):
 #
 def likelihoodregression(meas,model,sigma):
     t = (meas - model) / sigma
-    f = bioNormalPdf(t) / sigma
-    return f
+    return bioNormalPdf(t) / sigma
 
 
 ## Computes log likelihood function of a regression model.
@@ -69,7 +67,6 @@ def likelihoodregression(meas,model,sigma):
 #
 def loglikelihoodregression(meas,model,sigma):
     t = (meas - model) / sigma
-    f = - t * t / 2 - log(sigma) -0.9189385332
-    return f
+    return - t * t / 2 - log(sigma) -0.9189385332
 
 

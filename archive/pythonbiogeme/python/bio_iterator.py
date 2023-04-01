@@ -33,7 +33,7 @@ class iterator:
         listOfIterator.append(self) ;
 
     def __str__(self):
-        return "Iterator " + str(self.name) + " iterates on " + str(self.variable)
+        return f"Iterator {str(self.name)} iterates on {str(self.variable)}"
 
 ## @brief  Iterates on the data file for generate the user defined draws (since biogeme 2.4)
 # @details It is typically used with the DefineDraws expression to generate user defined draws.

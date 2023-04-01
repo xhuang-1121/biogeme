@@ -239,7 +239,7 @@ class test_expressions(unittest.TestCase):
         self.assertTrue(result.children[0] is self.Variable1)
         self.assertTrue(self.Variable1.parent is result)
 
-        result = 1 == self.Variable1
+        result = self.Variable1 == 1
         self.assertEqual(result.__str__(), '(Variable1 == `1`)')
         self.assertTrue(result.children[0] is self.Variable1)
         self.assertTrue(self.Variable1.parent is result)
@@ -263,7 +263,7 @@ class test_expressions(unittest.TestCase):
         self.assertTrue(result.children[0] is self.Variable1)
         self.assertTrue(self.Variable1.parent is result)
 
-        result = 1 != self.Variable1
+        result = self.Variable1 != 1
         self.assertEqual(result.__str__(), '(Variable1 != `1`)')
         self.assertTrue(result.children[0] is self.Variable1)
         self.assertTrue(self.Variable1.parent is result)
@@ -287,7 +287,7 @@ class test_expressions(unittest.TestCase):
         self.assertTrue(result.children[0] is self.Variable1)
         self.assertTrue(self.Variable1.parent is result)
 
-        result = 1 <= self.Variable1
+        result = self.Variable1 >= 1
         self.assertEqual(result.__str__(), '(Variable1 >= `1`)')
         self.assertTrue(result.children[0] is self.Variable1)
         self.assertTrue(self.Variable1.parent is result)
@@ -311,7 +311,7 @@ class test_expressions(unittest.TestCase):
         self.assertTrue(result.children[0] is self.Variable1)
         self.assertTrue(self.Variable1.parent is result)
 
-        result = 1 >= self.Variable1
+        result = self.Variable1 <= 1
         self.assertEqual(result.__str__(), '(Variable1 <= `1`)')
         self.assertTrue(result.children[0] is self.Variable1)
         self.assertTrue(self.Variable1.parent is result)
@@ -335,7 +335,7 @@ class test_expressions(unittest.TestCase):
         self.assertTrue(result.children[0] is self.Variable1)
         self.assertTrue(self.Variable1.parent is result)
 
-        result = 1 < self.Variable1
+        result = self.Variable1 > 1
         self.assertEqual(result.__str__(), '(Variable1 > `1`)')
         self.assertTrue(result.children[0] is self.Variable1)
         self.assertTrue(self.Variable1.parent is result)
@@ -359,7 +359,7 @@ class test_expressions(unittest.TestCase):
         self.assertTrue(result.children[0] is self.Variable1)
         self.assertTrue(self.Variable1.parent is result)
 
-        result = 1 > self.Variable1
+        result = self.Variable1 < 1
         self.assertEqual(result.__str__(), '(Variable1 < `1`)')
         self.assertTrue(result.children[0] is self.Variable1)
         self.assertTrue(self.Variable1.parent is result)

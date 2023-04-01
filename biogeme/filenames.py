@@ -26,9 +26,9 @@ def getNewFileName(name, ext):
        output files inadvertently.
     :rtype: string
     """
-    fileName = name + '.' + ext
+    fileName = f'{name}.{ext}'
     theFile = Path(fileName)
-    number = int(0)
+    number = 0
     while theFile.is_file():
         fileName = f'{name}~{number:02d}.{ext}'
         theFile = Path(fileName)

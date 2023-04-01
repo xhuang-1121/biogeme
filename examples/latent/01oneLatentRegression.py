@@ -8,6 +8,7 @@ Linear regression.
 
 """
 
+
 import pandas as pd
 import biogeme.database as db
 import biogeme.biogeme as bio
@@ -111,16 +112,17 @@ SIGMA_STAR_Mobil17 = Beta('SIGMA_STAR_Mobil17', 1, 0, None, 0)
 
 # We build a dict with each contribution to the loglikelihood if
 # (var > 0) and (var < 6). If not, 0 is returned.
-F = {}
-F['Envir01'] = Elem(
-    {
-        0: 0,
-        1: ll.loglikelihoodregression(
-            Envir01, MODEL_Envir01, SIGMA_STAR_Envir01
-        ),
-    },
-    (Envir01 > 0) * (Envir01 < 6),
-)
+F = {
+    'Envir01': Elem(
+        {
+            0: 0,
+            1: ll.loglikelihoodregression(
+                Envir01, MODEL_Envir01, SIGMA_STAR_Envir01
+            ),
+        },
+        (Envir01 > 0) * (Envir01 < 6),
+    )
+}
 F['Envir02'] = Elem(
     {
         0: 0,

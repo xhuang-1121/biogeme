@@ -266,14 +266,13 @@ def piecewiseFormula(variable, thresholds, initialBetas=None):
             'the last thresholds can be None'
         )
         raise excep.biogemeError(errorMsg)
-    if initialBetas is not None:
-        if len(initialBetas) != eye - 1:
-            errorMsg = (
-                f'As there are {eye} thresholds, a total of {eye-1} '
-                f'values are needed to initialize the parameters. '
-                f'But {len(initialBetas)} are provided'
-            )
-            raise excep.biogemeError(errorMsg)
+    if initialBetas is not None and len(initialBetas) != eye - 1:
+        errorMsg = (
+            f'As there are {eye} thresholds, a total of {eye-1} '
+            f'values are needed to initialize the parameters. '
+            f'But {len(initialBetas)} are provided'
+        )
+        raise excep.biogemeError(errorMsg)
 
     theVars = piecewiseVariables(expr.Variable(f'{variable}'), thresholds)
     terms = []
@@ -391,9 +390,8 @@ def piecewiseFunction(x, thresholds, betas):
 
     # If the first threshold is not -infinity, we need to check if
     # x is beyond it.
-    if thresholds[0] is not None:
-        if x < thresholds[0]:
-            return 0
+    if thresholds[0] is not None and x < thresholds[0]:
+        return 0
     rest = x
     total = 0
     for i, v in enumerate(betas):
@@ -449,11 +447,11 @@ def logmev(V, logGi, av, choice):
 
     """
     H = {i: v + logGi[i] for i, v in V.items()}
-    if av is None:
-        logP = expr._bioLogLogitFullChoiceSet(H, av=None, choice=choice)
-    else:
-        logP = expr._bioLogLogit(H, av, choice)
-    return logP
+    return (
+        expr._bioLogLogitFullChoiceSet(H, av=None, choice=choice)
+        if av is None
+        else expr._bioLogLogit(H, av, choice)
+    )
 
 
 def mev(V, logGi, av, choice):
@@ -551,8 +549,7 @@ def logmev_endogenousSampling(V, logGi, av, correction, choice):
 
     """
     H = {i: v + logGi[i] + correction[i] for i, v in V.items()}
-    logP = expr._bioLogLogit(H, av, choice)
-    return logP
+    return expr._bioLogLogit(H, av, choice)
 
 
 def mev_endogenousSampling(V, logGi, av, correction, choice):
@@ -856,8 +853,7 @@ def nested(V, availability, nests, choice):
         raise excep.biogemeError(message)
 
     logGi = getMevForNested(V, availability, nests)
-    P = mev(V, logGi, availability, choice)
-    return P
+    return mev(V, logGi, availability, choice)
 
 
 def lognested(V, availability, nests, choice):
@@ -908,8 +904,7 @@ def lognested(V, availability, nests, choice):
     if not ok:
         raise excep.biogemeError(message)
     logGi = getMevForNested(V, availability, nests)
-    logP = logmev(V, logGi, availability, choice)
-    return logP
+    return logmev(V, logGi, availability, choice)
 
 
 def nestedMevMu(V, availability, nests, choice, mu):
@@ -1026,8 +1021,7 @@ def lognestedMevMu(V, availability, nests, choice, mu):
     """
 
     logGi = getMevForNestedMu(V, availability, nests, mu)
-    logP = logmev(V, logGi, availability, choice)
-    return logP
+    return logmev(V, logGi, availability, choice)
 
 
 def cnl_avail(V, availability, nests, choice):
@@ -1244,10 +1238,7 @@ def getMevForCrossNested(V, availability, nests):
 
     """
 
-    Gi_terms = {}
-    logGi = {}
-    for i in V:
-        Gi_terms[i] = list()
+    Gi_terms = {i: [] for i in V}
     biosum = {}
     for m in nests:
         if availability is None:
@@ -1270,9 +1261,7 @@ def getMevForCrossNested(V, availability, nests):
                 * expr.exp((m[0] - 1) * (V[i]))
                 * biosum ** ((1.0 / m[0]) - 1.0)
             ]
-    for k in V:
-        logGi[k] = expr.log(expr.bioMultSum(Gi_terms[k]))
-    return logGi
+    return {k: expr.log(expr.bioMultSum(Gi_terms[k])) for k in V}
 
 
 def logcnl(V, availability, nests, choice):
@@ -1334,8 +1323,7 @@ def logcnl(V, availability, nests, choice):
     if message != '':
         logger.warning(f'CNL: {message}')
     logGi = getMevForCrossNested(V, availability, nests)
-    logP = logmev(V, logGi, availability, choice)
-    return logP
+    return logmev(V, logGi, availability, choice)
 
 
 def cnlmu(V, availability, nests, choice, mu):
@@ -1449,10 +1437,7 @@ def getMevForCrossNestedMu(V, availability, nests, mu):
     :rtype: biogeme.expressions.expr.Expression
 
     """
-    Gi_terms = {}
-    logGi = {}
-    for i in V:
-        Gi_terms[i] = list()
+    Gi_terms = {i: [] for i in V}
     biosum = {}
     for m in nests:
         if availability is None:
@@ -1477,9 +1462,7 @@ def getMevForCrossNestedMu(V, availability, nests, mu):
                 * expr.exp((m[0] - 1) * (V[i]))
                 * biosum ** ((mu / m[0]) - 1.0)
             ]
-    for k in V:
-        logGi[k] = expr.log(mu * expr.bioMultSum(Gi_terms[k]))
-    return logGi
+    return {k: expr.log(mu * expr.bioMultSum(Gi_terms[k])) for k in V}
 
 
 def logcnlmu(V, availability, nests, choice, mu):
@@ -1545,8 +1528,7 @@ def logcnlmu(V, availability, nests, choice, mu):
     if not ok:
         raise excep.biogemeError(message)
     logGi = getMevForCrossNestedMu(V, availability, nests, mu)
-    logP = logmev(V, logGi, availability, choice)
-    return logP
+    return logmev(V, logGi, availability, choice)
 
 
 def checkValidityNestedLogit(V, nests):
@@ -1603,8 +1585,7 @@ def checkValidityNestedLogit(V, nests):
 
     allPairs = [(n1, n2) for n1 in nests for n2 in nests if n1 != n2]
     for (n1, n2) in allPairs:
-        inter = set(n1[1]).intersection(n2[1])
-        if inter:
+        if inter := set(n1[1]).intersection(n2[1]):
             ok = False
             message += (
                 f'Two nests contain the following alternative(s): '
@@ -1661,14 +1642,11 @@ def checkValidityCNL(V, nests):
     ok = True
     message = ''
 
-    alt = {i: list() for i in V}
-    number = 0
+    alt = {i: [] for i in V}
     for mu, alpha in nests:
         for i, a in alpha.items():
             if a != 0.0:
                 alt[i].append(a)
-        number += 1
-
     problems_zero = []
     problems_one = []
     for i, ell in alt.items():

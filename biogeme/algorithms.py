@@ -133,16 +133,10 @@ class bioBounds:
         """
 
         def noneToMinusInfinity(x):
-            if x is None:
-                return -np.inf
-
-            return x
+            return -np.inf if x is None else x
 
         def noneToPlusInfinity(x):
-            if x is None:
-                return np.inf
-
-            return x
+            return np.inf if x is None else x
 
         self.bounds = b
         """list of tuples (ell,u) containing the lower and upper bounds for
@@ -233,11 +227,7 @@ class bioBounds:
             for i in range(self.n)
         ]
 
-        # Note that an exception with be raised at the creation of the
-        # new 'bioBounds' object is the bounds are incompatible.
-
-        result = bioBounds(newBounds)
-        return result
+        return bioBounds(newBounds)
 
     def intersectionWithTrustRegion(self, x, delta):
         """Create a bioBounds object representing the intersection
@@ -604,7 +594,7 @@ def schnabelEskow(
     phaseOne = True
     gamma = abs(A.diagonal()).max()
     j = 0
-    while j < dim and phaseOne is True:
+    while j < dim and phaseOne:
         a_max = A.diagonal()[j:].max()
         a_min = A.diagonal()[j:].min()
         if a_max < taubar * gamma or a_min < -mu * a_max:
@@ -806,10 +796,7 @@ def relativeGradient(x, f, g, typx, typf):
         ]
     )
     result = abs(relgrad).max()
-    if np.isfinite(result):
-        return result
-
-    return np.finfo(float).max
+    return result if np.isfinite(result) else np.finfo(float).max
 
 
 def newtonLineSearch(
@@ -1744,10 +1731,7 @@ def truncatedConjugateGradientSubspace(
 
             if np.inner(pbar, ybar) <= 0:
                 # Negative curvature has been detected.
-                if feasible:
-                    x[freeVariables] = xbar + alpha1 * pbar
-                else:
-                    x[freeVariables] = xbar
+                x[freeVariables] = xbar + alpha1 * pbar if feasible else xbar
                 return bounds.project(x), 3
 
             alpha2 = rho2 / np.inner(pbar, ybar)
@@ -1765,14 +1749,9 @@ def truncatedConjugateGradientSubspace(
             # Numerical problem detected. Return the current value of x
             logger.warning('Numerical problem in conjugate gradient algorithm')
             x[freeVariables] = xbar
-            if infeasibleIterate:
-                return bounds.project(x), 4
-            return x, 4
-
+            return (bounds.project(x), 4) if infeasibleIterate else (x, 4)
         x[freeVariables] = xbar
-    if infeasibleIterate:
-        return bounds.project(x), 4
-    return x, 1
+    return (bounds.project(x), 4) if infeasibleIterate else (x, 1)
 
 
 def simpleBoundsNewtonAlgorithm(
