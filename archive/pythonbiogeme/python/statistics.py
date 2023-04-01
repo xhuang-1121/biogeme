@@ -11,10 +11,7 @@ from biogeme import *
 # observation \f$n\f$ is given by is \f$1/J_n\f$, where \f$J_n\f$ is
 # the number of available alternatives, i.e. \f[ \mathcal{L} = -\sum_n \ln(J_n) \f]
 def nullLoglikelihood(availability,iterator):
-    terms = {}
-    for i,a in availability.items() :
-        terms[i] = ( a!=0 )
-
+    terms = {i: ( a!=0 ) for i, a in availability.items()}
     total = bioMultSum(terms)
     nl = -Sum(log(total),iterator)
     BIOGEME_OBJECT.STATISTICS['Null loglikelihood'] = nl
@@ -28,9 +25,7 @@ def nullLoglikelihood(availability,iterator):
 # \return A <a href="http://docs.python.org/py3k/tutorial/datastructures.html#dictionaries" target="_blank">dictionary</a> n with an entry n[i] for each alternative i containing the number of times it is chosen.
 # \note Note that availability is ignored here. 
 def choiceStatistics(choiceSet,choice,iterator):
-    n = {}
-    for i in choiceSet:
-        n[i] = Sum(choice == i,iterator)
+    n = {i: Sum(choice == i,iterator) for i in choiceSet}
     for i in choiceSet:
         s = 'Alt. %d chosen' % (i)
         BIOGEME_OBJECT.STATISTICS[s] = n[i]
@@ -42,9 +37,7 @@ def choiceStatistics(choiceSet,choice,iterator):
 # \param iterator An iterator on the data file.
 # \return A <a href="http://docs.python.org/py3k/tutorial/datastructures.html#dictionaries" target="_blank">dictionary</a> n with an entry n[i] for each alternative i containing the number of times it is available.
 def availabilityStatistics(availability,iterator):
-    n = {}
-    for i,a in availability.items():
-        n[i] = Sum((a != 0),iterator)
+    n = {i: Sum((a != 0),iterator) for i, a in availability.items()}
     for i,a in availability.items():
         s = 'Alt. %d available' % (i)
         BIOGEME_OBJECT.STATISTICS[s] = n[i]

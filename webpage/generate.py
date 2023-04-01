@@ -134,8 +134,7 @@ def cleanDoc(doc):
 
 
 def tableOfContents(allExamples):
-    result = ''
-    result += '<div class="panel panel-default">'
+    result = '' + '<div class="panel panel-default">'
     result += '<div class="panel-heading">Categories of examples</div>'
     result += '<div class="panel-body">'
     result += '<p>The examples are grouped into the following categories:</p>'
@@ -224,7 +223,7 @@ def oneExample(name, dir, all, html):
         result += '</tr>'
         if not hfiles:
             result += '<tr>'
-            result += f'<td></td>'
+            result += '<td></td>'
             result += f'<td>{cleanDoc(doc)}</td>'
             result += '</tr>'
         for k, h in enumerate(hfiles):
@@ -242,8 +241,7 @@ def oneExample(name, dir, all, html):
 
 def jupyterExamples():
     exclude = ['.DS_Store', 'notebooks.zip']
-    result = '<a id="jupyter"></a>'
-    result += '<div class="panel panel-default">'
+    result = '<a id="jupyter"></a>' + '<div class="panel panel-default">'
     result += '<div class="panel-heading">Modules illustrations</div>'
     result += '<div class="panel-body">'
     result += (
@@ -305,26 +303,28 @@ def generateExamples():
             if path.is_dir(follow_symlinks=False):
                 i += 1
                 with os.scandir(path.path) as local:
-                    if not path.path in ignoreDirectory:
+                    if path.path not in ignoreDirectory:
                         print(f'----- {path.path} -----')
                         f = []
                         h = []
                         for file in local:
                             if file.name.endswith('html'):
                                 h += [file.name]
-                            if file.is_file() and file.name.endswith('py'):
-                                if not file.name in ignore:
-                                    print(f'Parse {file.name}')
+                            if (
+                                file.is_file()
+                                and file.name.endswith('py')
+                                and file.name not in ignore
+                            ):
+                                print(f'Parse {file.name}')
                                     # Parse the docstrings
-                                    with open(file.path) as fd:
-                                        sourceCode = fd.read()
-                                    parsedCode = ast.parse(sourceCode)
-                                    f += [
-                                        (
-                                            file.name,
-                                            ast.get_docstring(parsedCode),
-                                        )
-                                    ]
+                                sourceCode = pathlib.Path(file.path).read_text()
+                                parsedCode = ast.parse(sourceCode)
+                                f += [
+                                    (
+                                        file.name,
+                                        ast.get_docstring(parsedCode),
+                                    )
+                                ]
 
                         all[path.name] = f
                         html[path.name] = h

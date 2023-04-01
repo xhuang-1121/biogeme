@@ -37,11 +37,7 @@ class oneSack(vns.solutionClass):
             and the total weight and total utility are both defined.
         :rtype: bool
         """
-        if self.x is None:
-            return False
-        if self.objectives is None:
-            return False
-        return True
+        return False if self.x is None else self.objectives is not None
 
     def __repr__(self):
         return str(self.x)

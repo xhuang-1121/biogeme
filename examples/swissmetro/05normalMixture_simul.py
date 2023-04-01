@@ -157,8 +157,7 @@ def normalpdf(v, mu=0.0, s=1.0):
     a = d / n
     num = np.exp(a)
     den = s * 2.506628275
-    p = num / den
-    return p
+    return num / den
 
 
 betas = results.getBetaValues(['B_TIME', 'B_TIME_S'])

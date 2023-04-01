@@ -47,18 +47,18 @@ class Expression:
 
         self.parent = None  #: Parent expression
 
-        self.children = list()  #: List of children expressions
+        self.children = []
 
         self.elementaryExpressionIndex = None
         """Indices of the elementary expressions (dict)"""
 
-        self.allFreeBetas = dict()  #: dict of free parameters
+        self.allFreeBetas = {}
 
-        self.freeBetaNames = list()  #: list of names of free parameters
+        self.freeBetaNames = []
 
-        self.allFixedBetas = dict()  #: dict of fixed parameters
+        self.allFixedBetas = {}
 
-        self.fixedBetaNames = list()  #: list of names of fixed parameters
+        self.fixedBetaNames = []
 
         self.allRandomVariables = None  #: dict of random variables
 
@@ -596,14 +596,13 @@ class Expression:
 
         if database is not None:
             self.variableNames = list(database.data.columns.values)
+        elif variables := self.setOfVariables():
+            raise excep.biogemeError(
+                f'No database is provided and the expression '
+                f'contains variables: {variables}'
+            )
         else:
-            variables = self.setOfVariables()
-            if variables:
-                raise excep.biogemeError(
-                    f'No database is provided and the expression '
-                    f'contains variables: {variables}'
-                )
-            self.variableNames = list()
+            self.variableNames = []
 
         (
             self.elementaryExpressionIndex,
@@ -866,8 +865,7 @@ class Expression:
                 'so is the gradient. The provided parameters are inconsistent.'
             )
         if database is None:
-            variables = self.setOfVariables()
-            if variables:
+            if variables := self.setOfVariables():
                 raise excep.biogemeError(
                     f'No database is provided and the expression '
                     f'contains variables: {variables}'
@@ -1035,10 +1033,14 @@ class Expression:
         :return: the expression if it exists. None otherwise.
         :rtype: biogeme.expressions.Expression
         """
-        for e in self.children:
-            if e.getElementaryExpression(name) is not None:
-                return e.getElementaryExpression(name)
-        return None
+        return next(
+            (
+                e.getElementaryExpression(name)
+                for e in self.children
+                if e.getElementaryExpression(name) is not None
+            ),
+            None,
+        )
 
     def setRow(self, row):
         """Obsolete function.
@@ -1063,8 +1065,7 @@ class Expression:
         """
         draws = {}
         for e in self.children:
-            d = e.dictOfDraws()
-            if d:
+            if d := e.dictOfDraws():
                 draws = dict(draws, **d)
         return draws
 
@@ -1132,8 +1133,7 @@ class Expression:
         :return: the name of the class
         :rtype: string
         """
-        n = type(self).__name__
-        return n
+        return type(self).__name__
 
     def getSignature(self):
         """The signature of a string characterizing an expression.
@@ -1227,10 +1227,7 @@ class Expression:
         """
         if self.getClassName() == t:
             return True
-        for e in self.children:
-            if e.embedExpression(t):
-                return True
-        return False
+        return any(e.embedExpression(t) for e in self.children)
 
     def countPanelTrajectoryExpressions(self):
         """Count the number of times the PanelLikelihoodTrajectory
@@ -1241,10 +1238,7 @@ class Expression:
             is used in the formula
         :rtype: int
         """
-        nbr = 0
-        for e in self.children:
-            nbr += e.countPanelTrajectoryExpressions()
-        return nbr
+        return sum(e.countPanelTrajectoryExpressions() for e in self.children)
 
     def audit(self, database=None):
         """Performs various checks on the expressions.
@@ -1303,20 +1297,20 @@ class BinaryOperator(Expression):
         Expression.__init__(self)
         if isNumeric(left):
             self.left = Numeric(left)  #: left parent
-        else:
-            if not isinstance(left, Expression):
-                raise excep.biogemeError(
-                    f'This is not a valid expression: {left}'
-                )
+        elif isinstance(left, Expression):
             self.left = left
+        else:
+            raise excep.biogemeError(
+                f'This is not a valid expression: {left}'
+            )
         if isNumeric(right):
             self.right = Numeric(right)  #: right parent
-        else:
-            if not isinstance(right, Expression):
-                raise excep.biogemeError(
-                    f'This is not a valid expression: {right}'
-                )
+        elif isinstance(right, Expression):
             self.right = right
+        else:
+            raise excep.biogemeError(
+                f'This is not a valid expression: {right}'
+            )
         self.left.parent = self
         self.right.parent = self
         self.children.append(self.left)
@@ -1554,9 +1548,7 @@ class And(BinaryOperator):
         """
         if self.left.getValue() == 0.0:
             return 0.0
-        if self.right.getValue() == 0.0:
-            return 0.0
-        return 1.0
+        return 0.0 if self.right.getValue() == 0.0 else 1.0
 
 
 class Or(BinaryOperator):
@@ -1586,9 +1578,7 @@ class Or(BinaryOperator):
         """
         if self.left.getValue() != 0.0:
             return 1.0
-        if self.right.getValue() != 0.0:
-            return 1.0
-        return 0.0
+        return 1.0 if self.right.getValue() != 0.0 else 0.0
 
 
 class Equal(BinaryOperator):
@@ -1616,8 +1606,7 @@ class Equal(BinaryOperator):
         :return: value of the expression
         :rtype: float
         """
-        r = 1 if self.left.getValue() == self.right.getValue() else 0
-        return r
+        return 1 if self.left.getValue() == self.right.getValue() else 0
 
 
 class NotEqual(BinaryOperator):
@@ -1645,8 +1634,7 @@ class NotEqual(BinaryOperator):
         :return: value of the expression
         :rtype: float
         """
-        r = 1 if self.left.getValue() != self.right.getValue() else 0
-        return r
+        return 1 if self.left.getValue() != self.right.getValue() else 0
 
 
 class LessOrEqual(BinaryOperator):
@@ -1675,8 +1663,7 @@ class LessOrEqual(BinaryOperator):
         :return: value of the expression
         :rtype: float
         """
-        r = 1 if self.left.getValue() <= self.right.getValue() else 0
-        return r
+        return 1 if self.left.getValue() <= self.right.getValue() else 0
 
 
 class GreaterOrEqual(BinaryOperator):
@@ -1704,8 +1691,7 @@ class GreaterOrEqual(BinaryOperator):
         :return: value of the expression
         :rtype: float
         """
-        r = 1 if self.left.getValue() >= self.right.getValue() else 0
-        return r
+        return 1 if self.left.getValue() >= self.right.getValue() else 0
 
 
 class Less(BinaryOperator):
@@ -1733,8 +1719,7 @@ class Less(BinaryOperator):
         :return: value of the expression
         :rtype: float
         """
-        r = 1 if self.left.getValue() < self.right.getValue() else 0
-        return r
+        return 1 if self.left.getValue() < self.right.getValue() else 0
 
 
 class Greater(BinaryOperator):
@@ -1762,8 +1747,7 @@ class Greater(BinaryOperator):
         :return: value of the expression
         :rtype: float
         """
-        r = 1 if self.left.getValue() > self.right.getValue() else 0
-        return r
+        return 1 if self.left.getValue() > self.right.getValue() else 0
 
 
 class UnaryOperator(Expression):
@@ -1788,12 +1772,12 @@ class UnaryOperator(Expression):
         Expression.__init__(self)
         if isNumeric(child):
             self.child = Numeric(child)  #: child
-        else:
-            if not isinstance(child, Expression):
-                raise excep.biogemeError(
-                    f'This is not a valid expression: {child}'
-                )
+        elif isinstance(child, Expression):
             self.child = child
+        else:
+            raise excep.biogemeError(
+                f'This is not a valid expression: {child}'
+            )
         self.child.parent = self
         self.children.append(self.child)
 
@@ -1857,16 +1841,15 @@ class MonteCarlo(UnaryOperator):
                     'expression, and no database is given'
                 )
                 listOfWarnings.append(theWarning)
-        else:
-            if database.isPanel() and not self.child.embedExpression(
+        elif database.isPanel() and not self.child.embedExpression(
                 'PanelLikelihoodTrajectory'
             ):
-                theError = (
-                    f'As the database is panel, the argument '
-                    f'of MonteCarlo must contain a'
-                    f' PanelLikelihoodTrajectory: {self}'
-                )
-                listOfErrors.append(theError)
+            theError = (
+                f'As the database is panel, the argument '
+                f'of MonteCarlo must contain a'
+                f' PanelLikelihoodTrajectory: {self}'
+            )
+            listOfErrors.append(theError)
 
         if not self.child.embedExpression('bioDraws'):
             theError = (
@@ -2298,10 +2281,7 @@ class Elementary(Expression):
             expression. None otherwise.
         :rtype: biogeme.Expression
         """
-        if self.name == name:
-            return self
-
-        return None
+        return self if self.name == name else None
 
     def setUniqueId(self, idsOfElementaryExpressions):
         """
@@ -2531,7 +2511,7 @@ class Numeric(Expression):
         self.value = value  #: numeric value
 
     def __str__(self):
-        return '`' + str(self.value) + '`'
+        return f'`{str(self.value)}`'
 
     def getValue(self):
         """Evaluates the value of the expression
@@ -2769,12 +2749,12 @@ class DefineVariable(Variable):
         Variable.__init__(self, name)
         if isNumeric(expression):
             database.addColumn(Numeric(expression), name)
-        else:
-            if not isinstance(expression, Expression):
-                raise excep.biogemeError(
-                    f'This is not a valid expression: {expression}'
-                )
+        elif isinstance(expression, Expression):
             database.addColumn(expression, name)
+        else:
+            raise excep.biogemeError(
+                f'This is not a valid expression: {expression}'
+            )
 
 
 class RandomVariable(Elementary):
@@ -3003,12 +2983,9 @@ class Beta(Elementary):
 
         """
         if fixed and self.status != 0:
-            return set([self.name])
+            return {self.name}
 
-        if free and self.status == 0:
-            return set([self.name])
-
-        return set()
+        return {self.name} if free and self.status == 0 else set()
 
     def setSpecificIndices(
         self,
@@ -3092,10 +3069,7 @@ class Beta(Elementary):
         if fixed and self.status != 0:
             return {self.name: self}
 
-        if free and self.status == 0:
-            return {self.name: self}
-
-        return dict()
+        return {self.name: self} if free and self.status == 0 else {}
 
     def getValue(self):
         """Evaluates the value of the expression
@@ -3231,12 +3205,12 @@ class LogLogit(Expression):
         for i, e in util.items():
             if isNumeric(e):
                 self.util[i] = Numeric(e)
-            else:
-                if not isinstance(e, Expression):
-                    raise excep.biogemeError(
-                        f'This is not a valid expression: {e}'
-                    )
+            elif isinstance(e, Expression):
                 self.util[i] = e
+            else:
+                raise excep.biogemeError(
+                    f'This is not a valid expression: {e}'
+                )
         self.av = {}  #: dict of availability formulas
         if av is None:
             self.av = {k: Numeric(1) for k, v in util.items()}
@@ -3244,28 +3218,28 @@ class LogLogit(Expression):
             for i, e in av.items():
                 if isNumeric(e):
                     self.av[i] = Numeric(e)
-                else:
-                    if not isinstance(e, Expression):
-                        raise excep.biogemeError(
-                            f'This is not a valid expression: {e}'
-                        )
+                elif isinstance(e, Expression):
                     self.av[i] = e
+                else:
+                    raise excep.biogemeError(
+                        f'This is not a valid expression: {e}'
+                    )
         if isNumeric(choice):
             self.choice = Numeric(choice)
             """expression for the chosen alternative"""
-        else:
-            if not isinstance(choice, Expression):
-                raise excep.biogemeError(
-                    f'This is not a valid expression: {choice}'
-                )
+        elif isinstance(choice, Expression):
             self.choice = choice
 
+        else:
+            raise excep.biogemeError(
+                f'This is not a valid expression: {choice}'
+            )
         self.choice.parent = self
         self.children.append(self.choice)
-        for i, e in self.util.items():
+        for e in self.util.values():
             e.parent = self
             self.children.append(e)
-        for i, e in self.av.items():
+        for e in self.av.values():
             e.parent = self
             self.children.append(e)
 
@@ -3279,8 +3253,8 @@ class LogLogit(Expression):
         :rtype: list(string), list(string)
 
         """
-        listOfErrors = []
         listOfWarnings = []
+        listOfErrors = []
         for e in self.children:
             err, war = e.audit(database)
             listOfErrors += err
@@ -3291,18 +3265,12 @@ class LogLogit(Expression):
                 'Incompatible list of alternatives in logit expression. '
             )
             consistent = False
-            myset = self.util.keys() - self.av.keys()
-            if myset:
+            if myset := self.util.keys() - self.av.keys():
                 mysetContent = ', '.join(f'{str(k)} ' for k in myset)
-                theError += (
-                    'Id(s) used for utilities and not for ' 'availabilities: '
-                ) + mysetContent
-            myset = self.av.keys() - self.util.keys()
-            if myset:
+                theError += f'Id(s) used for utilities and not for availabilities: {mysetContent}'
+            if myset := self.av.keys() - self.util.keys():
                 mysetContent = ', '.join(f'{str(k)} ' for k in myset)
-                theError += (
-                    ' Id(s) used for availabilities and not ' 'for utilities: '
-                ) + mysetContent
+                theError += f' Id(s) used for availabilities and not for utilities: {mysetContent}'
             listOfErrors.append(theError)
         else:
             consistent = True
@@ -3322,17 +3290,13 @@ class LogLogit(Expression):
             truncate = 100
             if len(content) > truncate:
                 content = f'{content[:truncate]}...'
-            theError = (
-                f'The choice variable [{self.choice}] does not '
-                f'correspond to a valid alternative for the '
-                f'following observations (rownumber[choice]): '
-            ) + content
+            theError = f'The choice variable [{self.choice}] does not correspond to a valid alternative for the following observations (rownumber[choice]): {content}'
             listOfErrors.append(theError)
 
         if consistent:
             if database is None:
                 value_choice = self.choice.getValue_c()
-                if not value_choice in self.av.keys():
+                if value_choice not in self.av.keys():
                     theError = (
                         f'The chosen alternative [{value_choice}] '
                         f'is not available'
@@ -3354,11 +3318,7 @@ class LogLogit(Expression):
                     truncate = 100
                     if len(content) > truncate:
                         content = f'{content[:truncate]}...'
-                    theError = (
-                        f'The chosen alternative [{self.choice}] '
-                        f'is not available for the following '
-                        f'observations (rownumber[choice]): '
-                    ) + content
+                    theError = f'The chosen alternative [{self.choice}] is not available for the following observations (rownumber[choice]): {content}'
                     listOfWarnings.append(theError)
 
         return listOfErrors, listOfWarnings
@@ -3560,8 +3520,7 @@ class bioMultSum(Expression):
         return result
 
     def __str__(self):
-        s = 'bioMultSum(' + ', '.join([f'{e}' for e in self.children]) + ')'
-        return s
+        return 'bioMultSum(' + ', '.join([f'{e}' for e in self.children]) + ')'
 
 
 class Elem(Expression):
@@ -3589,12 +3548,12 @@ class Elem(Expression):
         for k, v in dictOfExpressions.items():
             if isNumeric(v):
                 self.dictOfExpressions[k] = Numeric(v)
-            else:
-                if not isinstance(v, Expression):
-                    raise excep.biogemeError(
-                        f'This is not a valid expression: {v}'
-                    )
+            elif isinstance(v, Expression):
                 self.dictOfExpressions[k] = v
+            else:
+                raise excep.biogemeError(
+                    f'This is not a valid expression: {v}'
+                )
             self.dictOfExpressions[k].parent = self
             self.children.append(self.dictOfExpressions[k])
 
@@ -3602,12 +3561,12 @@ class Elem(Expression):
             self.keyExpression = Numeric(1) if keyExpression else Numeric(0)
         elif isNumeric(keyExpression):
             self.keyExpression = Numeric(keyExpression)
-        else:
-            if not isinstance(keyExpression, Expression):
-                raise excep.biogemeError(
-                    f'This is not a valid expression: {keyExpression}'
-                )
+        elif isinstance(keyExpression, Expression):
             self.keyExpression = keyExpression  #: expression for the key
+        else:
+            raise excep.biogemeError(
+                f'This is not a valid expression: {keyExpression}'
+            )
         self.keyExpression.parent = self
         self.children.append(self.keyExpression)
 
@@ -3635,11 +3594,11 @@ class Elem(Expression):
         first = True
         for k, v in self.dictOfExpressions.items():
             if first:
-                s += '{}:{}'.format(k, v)
+                s += f'{k}:{v}'
                 first = False
             else:
-                s += ', {}:{}'.format(k, v)
-        s += '}}[{}]'.format(self.keyExpression)
+                s += f', {k}:{v}'
+        s += f'}}[{self.keyExpression}]'
         return s
 
     def getSignature(self):

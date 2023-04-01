@@ -10,7 +10,7 @@ with os.scandir('.') as root_dir:
     for path in root_dir:
         if path.is_dir(follow_symlinks=False):
             with os.scandir(path.path) as local:
-                if not path.path in ignoreDirectory:
+                if path.path not in ignoreDirectory:
                     print(f'----- {path.path} -----')
                     for file in local:
                         if file.is_file() and file.name.endswith('py'):

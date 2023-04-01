@@ -77,9 +77,7 @@ def logit(THE_B_TIME_RND):
     # Associate the availability conditions with the alternatives
     av = {1: TRAIN_AV_SP, 2: SM_AV, 3: CAR_AV_SP}
 
-    # The choice model is a logit, with availability conditions
-    integrand = models.logit(V, av, CHOICE)
-    return integrand
+    return models.logit(V, av, CHOICE)
 
 
 numericalI = Integrate(logit(B_TIME_RND) * density, 'omega')

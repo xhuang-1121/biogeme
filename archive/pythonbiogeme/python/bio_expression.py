@@ -84,12 +84,9 @@ def buildExpressionObj(exp):
    ## Check if the object is numeric
    def isNumeric(obj):
       # Consider only ints and floats numeric
-      return isinstance(obj,int) or isinstance(obj,float)
+      return isinstance(obj, (int, float))
 
-   if isNumeric(exp) :
-      return Numeric(exp)
-   else :
-      return exp
+   return Numeric(exp) if isNumeric(exp) else exp
 
 ## @brief Interface for mathematical expressions
 class Expression:
@@ -104,7 +101,7 @@ class Expression:
 
    ## @return Return an ID for this expression, can be "xx-no ID" if the sublcass doest not override the function
    def getID(self):
-      return str(self.operatorIndex) + "-no ID"
+      return f"{str(self.operatorIndex)}-no ID"
 
    ## @return Returns a string with the expression
    def __str__(self):
@@ -254,10 +251,10 @@ class Numeric(Expression):
       self.operatorIndex = Operator.operatorIndexDic[Operator.num]
 
    def getExpression(self):
-      return "(" + str(self.number) + ")"
+      return f"({str(self.number)})"
 
    def getID(self):
-      return str(self.operatorIndex)+"-"+str(self.number)
+      return f"{str(self.operatorIndex)}-{str(self.number)}"
 
 ## @brief Class representing the variables defined in the data file. 
 # @ingroup expressions
@@ -278,7 +275,7 @@ class Variable(Expression):
       return str(self.name)
 
    def getID(self):
-      return str(self.operatorIndex)+"-"+str(self.name)
+      return f"{str(self.operatorIndex)}-{str(self.name)}"
 
 ## @brief Class representing a random variable for numerical
 # integration. 
@@ -343,7 +340,7 @@ class DefineDraws(Expression):
       return self.name + self.expression.getExpression()
 
    def getID(self):
-      return str(self.operatorIndex) + "-" + self.getExpression()
+      return f"{str(self.operatorIndex)}-{self.getExpression()}"
 
    
 ## @brief Class representing a parameter to be estimated.
@@ -374,11 +371,10 @@ class Beta(Expression):
 
    def getExpression(self):
       #return str(self.name)
-      return self.name + " " + str(self.val) + " " + str(self.lb) + \
-             " " + str(self.ub) + " " + str(self.st) + " " + self.desc
+      return f"{self.name} {str(self.val)} {str(self.lb)} {str(self.ub)} {str(self.st)} {self.desc}"
 
    def getID(self):
-      return str(self.operatorIndex) + "-" + self.getExpression()
+      return f"{str(self.operatorIndex)}-{self.getExpression()}"
 
 
    
@@ -398,7 +394,7 @@ class bioDraws(Expression):
       return str(self.name)
 
    def getID(self):
-      return str(self.operatorIndex)+"-Draw"+self.getExpression()
+      return f"{str(self.operatorIndex)}-Draw{self.getExpression()}"
 
 
 
@@ -415,10 +411,10 @@ class bioRecycleDraws(Expression):
       print("Id: ", self.getID())
 
    def getExpression(self):
-      return "Unif("+str(self.name)+")"
+      return f"Unif({str(self.name)})"
 
    def getID(self):
-      return str(self.operatorIndex)+"-Unif"+self.getExpression()
+      return f"{str(self.operatorIndex)}-Unif{self.getExpression()}"
 
 
 ## @brief Class representing a normally distributed random variable for
@@ -504,7 +500,7 @@ class UnOp(Expression):
       self.operatorIndex = Operator.operatorIndexDic[op]
 
    def getExpression(self):
-      return self.op + "(" + self.expression.getExpression() + ")"
+      return f"{self.op}({self.expression.getExpression()})"
 
 
 
@@ -523,7 +519,7 @@ class abs(Expression):
       self.operatorIndex = Operator.operatorIndexDic[Operator.absOp]
 
    def getExpression(self):
-      return Operator.absOp + "(" + self.expression.getExpression() + ")"
+      return f"{Operator.absOp}({self.expression.getExpression()})"
 
 
 ## @brief Class representing the expression for exponential
@@ -540,10 +536,10 @@ class exp(Expression):
       self.operatorIndex = Operator.operatorIndexDic[Operator.exp]
 
    def getExpression(self):
-      return Operator.exp + "(" + self.expression.getExpression() + ")"
+      return f"{Operator.exp}({self.expression.getExpression()})"
 
    def getID(self):
-      return str(self.operatorIndex) + "-" + self.getExpression()
+      return f"{str(self.operatorIndex)}-{self.getExpression()}"
 
 
 ## @brief Class representing the expression for natural logarithm.
@@ -556,10 +552,10 @@ class log(Expression):
       self.operatorIndex = Operator.operatorIndexDic[Operator.log]
 
    def getExpression(self):
-      return Operator.log + "(" + self.expression.getExpression() + ")"
+      return f"{Operator.log}({self.expression.getExpression()})"
 
    def getID(self):
-      return str(self.operatorIndex) + "-" + self.getExpression()
+      return f"{str(self.operatorIndex)}-{self.getExpression()}"
 
 ## @brief Class representing the cumulative distribution function of
 # the normal distribution
@@ -579,7 +575,7 @@ class bioNormalCdf(Expression):
       self.operatorIndex = Operator.operatorIndexDic[Operator.bioNormalCdf]
 
    def getExpression(self):
-      return Operator.normalCdf + "(" + self.expression.getExpression() + ")"
+      return f"{Operator.normalCdf}({self.expression.getExpression()})"
 
 ## @brief Class representing the expression for the maximum of two expressions.
 # @ingroup expressions
@@ -595,7 +591,7 @@ class max(Expression):
       self.operatorIndex = Operator.operatorIndexDic[Operator.maxOp]
 
    def getExpression(self):
-      return "max(" + self.left.getExpression() + "," + self.right.getExpression() + ")"
+      return f"max({self.left.getExpression()},{self.right.getExpression()})"
 
 ## @brief Class representing the expression for the minimum of two expressions.
 # @ingroup expressions
@@ -610,7 +606,7 @@ class min(Expression):
       self.operatorIndex = Operator.operatorIndexDic[Operator.minOp]
 
    def getExpression(self):
-      return "min(" + self.left.getExpression() + "," + self.right.getExpression() + ")"
+      return f"min({self.left.getExpression()},{self.right.getExpression()})"
 
 ## @brief Generic class for binary operators
 class BinOp(Expression):
@@ -624,10 +620,10 @@ class BinOp(Expression):
       self.operatorIndex = Operator.operatorIndexDic[op]
 
    def getExpression(self):
-      return "(" + self.left.getExpression() + self.op + self.right.getExpression() + ")"
+      return f"({self.left.getExpression()}{self.op}{self.right.getExpression()})"
 
    def getID(self):
-      return str(self.operatorIndex) + "-" + self.getExpression()
+      return f"{str(self.operatorIndex)}-{self.getExpression()}"
 
 ## @brief Class representing the Monte Carlo integration of an expression
 # @ingroup expressions
@@ -637,9 +633,9 @@ class MonteCarlo(Expression) :
       self.expression = buildExpressionObj(expression)
       self.operatorIndex = Operator.operatorIndexDic[Operator.monteCarloOp]
 
-   def getExpression(self) :
+   def getExpression(self):
       strexpr = "MonteCarlo"
-      strexpr += "(" + self.expression.getExpression() + ")"
+      strexpr += f"({self.expression.getExpression()})"
       return strexpr
 
 ## @brief Class representing the Monte Carlo integration of an
@@ -655,9 +651,9 @@ class MonteCarloControlVariate(Expression) :
       self.integral = buildExpressionObj(integral)
       self.operatorIndex = Operator.operatorIndexDic[Operator.monteCarloCVOp]
 
-   def getExpression(self) :
+   def getExpression(self):
       strexpr = "MonteCarloControlVariate"
-      strexpr += "(" + self.function.getExpression() + ")"
+      strexpr += f"({self.function.getExpression()})"
       return strexpr
 
 ## @brief Class representing the sum of the same expression applied to a list of data.
@@ -681,10 +677,10 @@ class Sum(Expression) :
       self.iteratorName = iteratorName 
       self.operatorIndex = Operator.operatorIndexDic[Operator.sumOp]
 
-   def getExpression(self) :
+   def getExpression(self):
       strexpr = "sum"
-      strexpr += "[" + str(self.iteratorName) + "]"
-      strexpr += "(" + self.function.getExpression() + ")"
+      strexpr += f"[{str(self.iteratorName)}]"
+      strexpr += f"({self.function.getExpression()})"
       return strexpr
 
 
@@ -742,10 +738,10 @@ class Prod(Expression) :
       self.positive = positive 
       self.operatorIndex = Operator.operatorIndexDic[Operator.prodOp]
 
-   def getExpression(self) :
+   def getExpression(self):
       strexpr = "prod"
-      strexpr += "[" + str(self.iteratorName) + "]"
-      strexpr += "(" + self.function.getExpression() + ")"
+      strexpr += f"[{str(self.iteratorName)}]"
+      strexpr += f"({self.function.getExpression()})"
       return strexpr
 
 ## @brief Class performing numerical integration relying on the <a
@@ -788,9 +784,9 @@ class Integrate(Expression):
       self.variable = v
       self.operatorIndex = Operator.operatorIndexDic[Operator.integralOp]
 
-   def getExpression(self) :
+   def getExpression(self):
       strexpr = "Integral"
-      strexpr += "(" + self.function.getExpression() + "," + variable + ")"
+      strexpr += f"({self.function.getExpression()},{variable})"
       return strexpr
 
 ## @brief Class generating the analytical derivative of an expression. 
@@ -819,9 +815,9 @@ class Derive(Expression):
       self.variable = v
       self.operatorIndex = Operator.operatorIndexDic[Operator.derivativeOp]
 
-   def getExpression(self) :
+   def getExpression(self):
       strexpr = "Derive"
-      strexpr += "(" + self.function.getExpression() + "," + variable + ")"
+      strexpr += f"({self.function.getExpression()},{variable})"
       return strexpr
                 
 ## @brief Class representing the probability density function of a
@@ -843,9 +839,9 @@ class bioNormalPdf(Expression):
       self.function = buildExpressionObj(term)
       self.operatorIndex = Operator.operatorIndexDic[Operator.bioNormalPdf]
 
-   def getExpression(self) :
+   def getExpression(self):
       strexpr = "normalPdf"
-      strexpr += "(" + self.function.getExpression() + ")"
+      strexpr += f"({self.function.getExpression()})"
       return strexpr
                 
 ## @brief Class extracting an expression from a dictionary.
@@ -886,17 +882,17 @@ class Elem(Expression) :
       self.default = buildExpressionObj(default)
       self.operatorIndex = Operator.operatorIndexDic[Operator.elemOp]
 
-   def getExpression(self) :
+   def getExpression(self):
       res = "Elem"
-      res += "[" + str(self.choice) + "]"
+      res += f"[{str(self.choice)}]"
       res += "{"
       for i,v in self.prob.items():
-         res += "(" + str(i) + ": " + str(v) + ")"
+         res += f"({str(i)}: {str(v)})"
       res += "}"
       return res
 
    def getID(self):
-      return str(self.operatorIndex) + "-" + self.getExpression()
+      return f"{str(self.operatorIndex)}-{self.getExpression()}"
 
 
 ## @brief Class calculating a logit choice probability
@@ -935,16 +931,16 @@ class bioLogit(Expression) :
       self.choice = buildExpressionObj(choice)
       self.operatorIndex = Operator.operatorIndexDic[Operator.logitOp]
 
-   def getExpression(self) :
+   def getExpression(self):
       res = "Logit"
-      res += "[" + str(self.choice) + "]"
+      res += f"[{str(self.choice)}]"
       res += "{"
       for i,v in self.prob.items():
-         res += "(" + str(i) + ": " + str(v) + ")"
+         res += f"({str(i)}: {str(v)})"
       res += "}"
       res += "{"
       for i,v in self.av.items():
-         res += "(" + str(i) + ": " + str(v) + ")"
+         res += f"({str(i)}: {str(v)})"
       res += "}"
       return res
 
@@ -985,16 +981,16 @@ class bioLogLogit(Expression) :
       self.choice = buildExpressionObj(choice)
       self.operatorIndex = Operator.operatorIndexDic[Operator.loglogitOp]
       
-   def getExpression(self) :
+   def getExpression(self):
       res = "LogLogit"
-      res += "[" + str(self.choice) + "]"
+      res += f"[{str(self.choice)}]"
       res += "{"
       for i,v in self.prob.items():
-         res += "(" + str(i) + ": " + str(v) + ")"
+         res += f"({str(i)}: {str(v)})"
       res += "}"
       res += "{"
       for i,v in self.av.items():
-         res += "(" + str(i) + ": " + str(v) + ")"
+         res += f"({str(i)}: {str(v)})"
       res += "}"
       return res
 
@@ -1010,38 +1006,36 @@ class bioLogLogit(Expression) :
 # @endcode
 class bioMultSum(Expression) :
    
-   def __init__(self, terms) :
-      if type(terms).__name__ == 'list':
-         self.type = 1
-         self.terms = [] ;
-         for k in terms :
-            self.terms.append(buildExpressionObj(k))
-      elif type(terms).__name__ == 'dict':
+   def __init__(self, terms):
+      if type(terms).__name__ == 'dict':
          self.type = 2
-         self.terms = {} ;
+         self.terms = {}
          for k,v in terms.items() :
             self.terms[k] = buildExpressionObj(v)
+      elif type(terms).__name__ == 'list':
+         self.terms = [] ;
+         self.type = 1
+         self.terms.extend(buildExpressionObj(k) for k in terms)
       else:
          self.type = -1
       self.operatorIndex = Operator.operatorIndexDic[Operator.multSumOp]
 
-   def getExpression(self) :
-      res = "bioMultSum"
-      res += "("
+   def getExpression(self):
+      res = "bioMultSum" + "("
       if self.type == 2:
-         for i,v in self.terms.items():
-            res += v.getExpression() + ","
-      
+         for i, v in self.terms.items():
+            res += f"{v.getExpression()},"
+
       if self.type ==1:
          for k in self.terms:
-            res += k.getExpression() + ","
+            res += f"{k.getExpression()},"
 
       #remove last coma
-      res = res[:-1] + ")"
+      res = f"{res[:-1]})"
       return res
 
    def getID(self):
-      return str(self.operatorIndex)+"-"+self.getExpression()
+      return f"{str(self.operatorIndex)}-{self.getExpression()}"
 
 
 ## @brief Class performing a sample enumeration
@@ -1077,12 +1071,12 @@ class Enumerate(Expression) :
       self.iteratorName = iteratorName 
       self.operatorIndex = Operator.operatorIndexDic[Operator.enumOp]
 
-   def getExpression(self) :
+   def getExpression(self):
       strexpr = "Enumerate"
-      strexpr += "[" + str(self.iteratorName) + "]"
+      strexpr += f"[{str(self.iteratorName)}]"
       strexpr += "{"
       for i,v in self.term.items():
-         strexpr += "(" + str(i) + ": " + str(v) + ")"
+         strexpr += f"({str(i)}: {str(v)})"
       strexpr += "}"
       return strexpr
 
@@ -1097,29 +1091,25 @@ class bioBayesNormalDraw(Expression):
       self.error = None
       if type(mean).__name__ == 'list':
          self.mean = [] ;
-         for k in mean :
-            self.mean.append(buildExpressionObj(k))
+         self.mean.extend(buildExpressionObj(k) for k in mean)
       else:
          self.error = "Syntax error: the first argument of bioBayesNormalDraw must be a list of expressions. Syntax: [B_TIME, B_COST]. " ;
 
       if type(realizations).__name__ == 'list':
          self.realizations = [] ;
-         for k in realizations :
-            self.realizations.append(buildExpressionObj(k))
+         self.realizations.extend(buildExpressionObj(k) for k in realizations)
       else:
          self.error = "Syntax error: the second argument of bioBayesNormalDraw must be a list of expressions. Syntax: [B_TIME_RND, B_COST_RND]"
       if type(varcovar).__name__ == 'list':
          self.varcovar = [] ;
-         for k in varcovar :
-            row = [] 
+         for k in varcovar:
             if type(k).__name__ == 'list':
-               for j in k:
-                  row.append(buildExpressionObj(k))
+               row = [buildExpressionObj(k) for _ in k]
                self.varcovar.append(row)
             else:
                self.error = "Syntax error: the third argument of bioBayesNormalDraw must be a list of list of expressions. Syntax: [[ B_TIME_S , B_COVAR ] , [B_COVAR , B_COST_S]]." ;
-               
-      
+
+
       else:
          self.error = "Syntax error: the third argument of bioBayesNormalDraw must be a list of list of expressions. Syntax: [[ B_TIME_S , B_COVAR ] , [B_COVAR , B_COST_S]]."
       self.varcovar = varcovar
@@ -1147,17 +1137,16 @@ class MH(Expression) :
   ## @param warmup number of steps of the Markov chain to perform to
   ## reach stationarity.
   ## @param steps number of steps to skip between two draws.
-   def __init__(self, beta, density, warmup, steps) :
-      if type(beta).__name__ == 'list':
-         self.type = 1
-         self.beta = [] ;
-         for k in beta :
-            self.beta.append(buildExpressionObj(k))
-      elif type(beta).__name__ == 'dict':
+   def __init__(self, beta, density, warmup, steps):
+      if type(beta).__name__ == 'dict':
          self.type = 2
-         self.beta = {} ;
+         self.beta = {}
          for k,v in beta.items() :
             self.beta[k] = buildExpressionObj(v)
+      elif type(beta).__name__ == 'list':
+         self.beta = [] ;
+         self.type = 1
+         self.beta.extend(buildExpressionObj(k) for k in beta)
       else:
          self.type = -1
       self.density = density

@@ -63,9 +63,7 @@ html_static_path = ['_static']
 
 def skip(app, what, name, obj, would_skip, options):
     keep = ["__init__","__add__","__radd__","__sub__","__rsub__","__mul__","__rmul__","__div__","__rdiv__","__truediv__","__rtruediv__","__neg__","__pow__","__rpow__","__and__","__or__","__eq__","__ne__","__le__","__ge__","__lt__","__gt__"]
-    if name in keep :
-        return False
-    return would_skip
+    return False if name in keep else would_skip
 
 def setup(app):
     app.connect("autodoc-skip-member", skip)

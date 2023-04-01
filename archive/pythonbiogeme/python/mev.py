@@ -34,12 +34,9 @@ from biogeme import *
 #     P = bioLogit(H,av,choice)
 #     return P
 # \endcode
-def mev(V,Gi,av,choice) :
-    H = {}
-    for i,v in V.items() :
-        H[i] =  Elem({0:0, 1: v + log(Gi[i])},av[i]!=0)  
-    P = bioLogit(H,av,choice)
-    return P
+def mev(V,Gi,av,choice):
+    H = {i: Elem({0:0, 1: v + log(Gi[i])},av[i]!=0) for i, v in V.items()}
+    return bioLogit(H,av,choice)
 
 ## Log of the choice probability for a MEV model.
 # @ingroup models
@@ -72,12 +69,9 @@ def mev(V,Gi,av,choice) :
 #     P = bioLogLogit(H,av,choice)
 #     return P
 # \endcode
-def logmev(V,Gi,av,choice) :
-    H = {}
-    for i,v in V.items() :
-        H[i] =  Elem({0:0, 1: v + log(Gi[i])},av[i]!=0)  
-    logP = bioLogLogit(H,av,choice)
-    return logP
+def logmev(V,Gi,av,choice):
+    H = {i: Elem({0:0, 1: v + log(Gi[i])},av[i]!=0) for i, v in V.items()}
+    return bioLogLogit(H,av,choice)
 
 
 
@@ -118,14 +112,9 @@ def logmev(V,Gi,av,choice) :
 #     P = bioLogit(H,av,choice)
 #     return P
 # \endcode
-def mev_selectionBias(V,Gi,av,correction,choice) :
-    H = {}
-    for i,v in V.items() :
-        H[i] = v + log(Gi[i]) + correction[i]
-
-    P = bioLogit(H,av,choice)
-            
-    return P
+def mev_selectionBias(V,Gi,av,correction,choice):
+    H = {i: v + log(Gi[i]) + correction[i] for i, v in V.items()}
+    return bioLogit(H,av,choice)
 
 
 
@@ -166,14 +155,9 @@ def mev_selectionBias(V,Gi,av,correction,choice) :
 #     P = bioLogLogit(H,av,choice)
 #     return P
 # \endcode
-def logmev_selectionBias(V,Gi,av,correction,choice) :
-    H = {}
-    for i,v in V.items() :
-        H[i] = v + log(Gi[i]) + correction[i]
-
-    P = bioLogLogit(H,av,choice)
-            
-    return P
+def logmev_selectionBias(V,Gi,av,correction,choice):
+    H = {i: v + log(Gi[i]) + correction[i] for i, v in V.items()}
+    return bioLogLogit(H,av,choice)
 
 
 

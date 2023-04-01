@@ -177,7 +177,7 @@ def getPrimeNumbers(n):
         primes = calculatePrimeNumbers(upperBound)
         total = len(primes)
     try:
-        return primes[0:n]
+        return primes[:n]
     except TypeError as e:
         raise excep.biogemeError(f'Incorrect number: {n}') from e
 
@@ -199,7 +199,7 @@ def calculatePrimeNumbers(upperBound):
 
     """
     try:
-        mywork = list(range(0, upperBound + 1))
+        mywork = list(range(upperBound + 1))
     except TypeError as e:
         raise excep.biogemeError(f'Incorrect value: {upperBound}') from e
 
@@ -213,13 +213,7 @@ def calculatePrimeNumbers(upperBound):
         if mywork[i] != 0:
             for k in range(2 * i, upperBound + 1, i):
                 mywork[k] = 0
-    # Gather non zero entries, which are the prime numbers
-    myprimes = []
-    for i in range(1, upperBound + 1):
-        if mywork[i] != 0 and mywork[i] != 1:
-            myprimes += [mywork[i]]
-
-    return myprimes
+    return [mywork[i] for i in range(1, upperBound + 1) if mywork[i] not in [0, 1]]
 
 
 def countNumberOfGroups(df, column):

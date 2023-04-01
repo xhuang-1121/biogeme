@@ -45,8 +45,7 @@ def normalpdf(x, mu=0.0, s=1.0):
     a = d / n
     num = exp(a)
     den = s * 2.506628275
-    p = num / den
-    return p
+    return num / den
 
 
 def lognormalpdf(x, mu=0.0, s=1.0):
@@ -81,8 +80,7 @@ def lognormalpdf(x, mu=0.0, s=1.0):
     a = d / n
     num = exp(a)
     den = x * s * 2.506628275
-    p = (x > 0) * num / den
-    return p
+    return (x > 0) * num / den
 
 
 def uniformpdf(x, a=-1, b=1.0):
@@ -106,8 +104,7 @@ def uniformpdf(x, a=-1, b=1.0):
     :return: value of the uniform pdf.
     :rtype: float or biogeme.expression
  """
-    result = (x < a) * 0.0 + (x >= b) * 0.0 + (x >= a) * (x < b) / (b - a)
-    return result
+    return (x < a) * 0.0 + (x >= b) * 0.0 + (x >= a) * (x < b) / (b - a)
 
 
 def triangularpdf(x, a=-1.0, b=1.0, c=0.0):
@@ -136,7 +133,7 @@ def triangularpdf(x, a=-1.0, b=1.0, c=0.0):
     :rtype: float or biogeme.expression
 
     """
-    result = (
+    return (
         (x < a) * 0.0
         + (x >= b) * 0.0
         + (x >= a)
@@ -149,7 +146,6 @@ def triangularpdf(x, a=-1.0, b=1.0, c=0.0):
         * (b - x)
         / ((b - a) * (b - c))
     )
-    return result
 
 
 def logisticcdf(x, mu=0.0, s=1.0):
@@ -176,5 +172,4 @@ def logisticcdf(x, mu=0.0, s=1.0):
     :rtype: float or biogeme.expression
 
     """
-    result = 1.0 / (1.0 + exp(-(x - mu) / s))
-    return result
+    return 1.0 / (1.0 + exp(-(x - mu) / s))

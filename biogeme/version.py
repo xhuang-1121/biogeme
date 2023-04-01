@@ -36,8 +36,7 @@ def getVersion():
     :return:  version number, and the release.
     :rtype: string
     """
-    v = f'{versionMajor}.{versionMinor}.{versionRelease}'
-    return v
+    return f'{versionMajor}.{versionMinor}.{versionRelease}'
 
 
 __version__ = getVersion()

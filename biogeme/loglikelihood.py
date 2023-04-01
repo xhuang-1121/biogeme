@@ -102,5 +102,4 @@ def loglikelihoodregression(meas, model, sigma):
     :rtype: biogeme.expressions.Expression
     """
     t = (meas - model) / sigma
-    f = -(t ** 2) / 2 - log(sigma) - 0.9189385332
-    return f
+    return -(t ** 2) / 2 - log(sigma) - 0.9189385332

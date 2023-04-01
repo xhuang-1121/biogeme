@@ -95,7 +95,7 @@ class Database:
         # generators with a series of native generators.
         self._initNativeRandomNumberGenerators()
 
-        self.userRandomNumberGenerators = dict()
+        self.userRandomNumberGenerators = {}
         """Dictionary containing user defined random number
         generators. Defined by the function
         Database.setRandomNumberGenerators that checks that reserved
@@ -415,12 +415,13 @@ class Database:
             database=self,
             aggregation=False,
         )
-        calculated_avail = {}
-        for key, expression in avail.items():
-            calculated_avail[key] = expression.getValue_c(
+        calculated_avail = {
+            key: expression.getValue_c(
                 database=self,
                 aggregation=False,
             )
+            for key, expression in avail.items()
+        }
         avail_chosen = np.array(
             [calculated_avail[c][i] for i, c in enumerate(choice_array)]
         )
@@ -449,17 +450,15 @@ class Database:
         )
         unique = np.unique(choice_array, return_counts=True)
         choice_stat = {alt: unique[1][i] for i, alt in enumerate(unique[0])}
-        calculated_avail = {}
-        for key, expression in avail.items():
-            calculated_avail[key] = expression.getValue_c(
+        calculated_avail = {
+            key: expression.getValue_c(
                 database=self,
                 aggregation=False,
             )
-        avail_stat = {k: sum(a) for k, a in calculated_avail.items()}
-        theResults = {
-            alt: (c, avail_stat[alt]) for alt, c in choice_stat.items()
+            for key, expression in avail.items()
         }
-        return theResults
+        avail_stat = {k: sum(a) for k, a in calculated_avail.items()}
+        return {alt: (c, avail_stat[alt]) for alt, c in choice_stat.items()}
 
     def sumFromDatabase(self, expression):
         """Calculates the value of an expression for each entry
@@ -556,10 +555,7 @@ class Database:
         """
         if size is None:
             size = len(self.data)
-        sample = self.data.iloc[
-            np.random.randint(0, len(self.data), size=size)
-        ]
-        return sample
+        return self.data.iloc[np.random.randint(0, len(self.data), size=size)]
 
     def sampleIndividualMapWithReplacement(self, size=None):
         """Extract a random sample of the individual map
@@ -586,10 +582,9 @@ class Database:
 
         if size is None:
             size = len(self.individualMap)
-        sample = self.individualMap.iloc[
+        return self.individualMap.iloc[
             np.random.randint(0, len(self.individualMap), size=size)
         ]
-        return sample
 
     def sampleWithoutReplacement(
         self, samplingRate, columnWithSamplingWeights=None
@@ -608,27 +603,22 @@ class Database:
         if self.isPanel():
             if self.fullIndividualMap is None:
                 self.fullIndividualMap = self.individualMap
-            else:
-                # Check if the structure has not been modified since
-                # last sample
-                if set(self.fullIndividualMap.columns) != set(
+            elif set(self.fullIndividualMap.columns) != set(
                     self.individualMap.columns
                 ):
-                    message = (
-                        'The structure of the database has been '
-                        'modified since last sample. '
-                    )
-                    left = set(self.fullIndividualMap.columns).difference(
-                        set(self.individualMap.columns)
-                    )
-                    if left:
-                        message += f' Columns that disappeared: {left}'
-                    right = set(self.individualMap.columns).difference(
-                        set(self.fullIndividualMap.columns)
-                    )
-                    if right:
-                        message += f' Columns that were added: {right}'
-                    raise excep.biogemeError(message)
+                message = (
+                    'The structure of the database has been '
+                    'modified since last sample. '
+                )
+                if left := set(self.fullIndividualMap.columns).difference(
+                    set(self.individualMap.columns)
+                ):
+                    message += f' Columns that disappeared: {left}'
+                if right := set(self.individualMap.columns).difference(
+                    set(self.fullIndividualMap.columns)
+                ):
+                    message += f' Columns that were added: {right}'
+                raise excep.biogemeError(message)
 
             self.individualMap = self.fullIndividualMap.sample(
                 frac=samplingRate, weights=columnWithSamplingWeights
@@ -643,25 +633,20 @@ class Database:
             # Cross sectional data
             if self.fullData is None:
                 self.fullData = self.data
-            else:
-                # Check if the structure has not been modified since
-                # last sample
-                if set(self.fullData.columns) != set(self.data.columns):
-                    message = (
-                        'The structure of the database has been modified '
-                        'since last sample. '
-                    )
-                    left = set(self.fullData.columns).difference(
-                        set(self.data.columns)
-                    )
-                    if left:
-                        message += f' Columns that disappeared: {left}'
-                    right = set(self.data.columns).difference(
-                        set(self.fullData.columns)
-                    )
-                    if right:
-                        message += f' Columns that were added: {right}'
-                    raise excep.biogemeError(message)
+            elif set(self.fullData.columns) != set(self.data.columns):
+                message = (
+                    'The structure of the database has been modified '
+                    'since last sample. '
+                )
+                if left := set(self.fullData.columns).difference(
+                    set(self.data.columns)
+                ):
+                    message += f' Columns that disappeared: {left}'
+                if right := set(self.data.columns).difference(
+                    set(self.fullData.columns)
+                ):
+                    message += f' Columns that were added: {right}'
+                raise excep.biogemeError(message)
 
             self.data = self.fullData.sample(
                 frac=samplingRate, weights=columnWithSamplingWeights
@@ -679,9 +664,9 @@ class Database:
                     'Full panel data set has not been saved.'
                 )
             self.individualMap = self.fullIndividualMap
+        elif self.fullData is None:
+            raise excep.biogemeError('Full data set has not been saved.')
         else:
-            if self.fullData is None:
-                raise excep.biogemeError('Full data set has not been saved.')
             self.data = self.fullData
 
     def addColumn(self, expression, column):
@@ -839,16 +824,16 @@ class Database:
             theGenerator = self.nativeRandomNumberGenerators.get(drawType)
             if theGenerator is None:
                 theGenerator = self.userRandomNumberGenerators.get(drawType)
-                if theGenerator is None:
-                    native = self.nativeRandomNumberGenerators
-                    user = self.userRandomNumberGenerators
-                    errorMsg = (
-                        f'Unknown type of draws for '
-                        f'variable {name}: {drawType}. '
-                        f'Native types: {native}. '
-                        f'User defined: {user}'
-                    )
-                    raise excep.biogemeError(errorMsg)
+            if theGenerator is None:
+                native = self.nativeRandomNumberGenerators
+                user = self.userRandomNumberGenerators
+                errorMsg = (
+                    f'Unknown type of draws for '
+                    f'variable {name}: {drawType}. '
+                    f'Native types: {native}. '
+                    f'User defined: {user}'
+                )
+                raise excep.biogemeError(errorMsg)
             listOfDraws[i] = theGenerator[0](
                 self.getSampleSize(), numberOfDraws
             )
@@ -897,10 +882,7 @@ class Database:
         See also: getNumberOfObservations()
 
         """
-        if self.isPanel():
-            return self.individualMap.shape[0]
-
-        return self.data.shape[0]
+        return self.individualMap.shape[0] if self.isPanel() else self.data.shape[0]
 
     def split(self, slices, groups=None):
         """Prepare estimation and validation sets for validation.
@@ -926,14 +908,13 @@ class Database:
             )
             raise excep.biogemeError(error_msg)
 
-        if groups is not None and self.isPanel():
-            if groups != self.panelColumn:
-                error_msg = (
-                    f'The data is already organized by groups on '
-                    f'{self.panelColumn}. The grouping by {groups} '
-                    f'cannot be done.'
-                )
-                raise excep.biogemeError(error_msg)
+        if groups is not None and self.isPanel() and groups != self.panelColumn:
+            error_msg = (
+                f'The data is already organized by groups on '
+                f'{self.panelColumn}. The grouping by {groups} '
+                f'cannot be done.'
+            )
+            raise excep.biogemeError(error_msg)
 
         if self.isPanel():
             groups = self.panelColumn
@@ -1005,7 +986,7 @@ class Database:
             self.data = self.data.sort_values(by=self.panelColumn)
             # It is necessary to renumber the row to reflect the new ordering
             self.data.index = range(len(self.data.index))
-            local_map = dict()
+            local_map = {}
             individuals = self.data[self.panelColumn].unique()
             for i in individuals:
                 indices = self.data.loc[self.data[self.panelColumn] == i].index
@@ -1029,9 +1010,6 @@ class Database:
 
     def generateFlatPanelDataframe(self, saveOnFile=None):
         raise ('Not yet implemented')
-        if not self.isPanel():
-            error_msg = 'This function can only be called for panel data'
-            raise excep.biogemeError(error_msg)
 
     def __str__(self):
         """Allows to print the dabase"""

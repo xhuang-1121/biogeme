@@ -160,11 +160,14 @@ class solutionClass(metaclass=abc.ABCMeta):
                 f' and {len(anotherSolution.objectives)}'
             )
 
-        for my_f, her_f in zip(self.objectives, anotherSolution.objectives):
-            if my_f > her_f:
-                return False
-
-        return self.objectives != anotherSolution.objectives
+        return next(
+            (
+                False
+                for my_f, her_f in zip(self.objectives, anotherSolution.objectives)
+                if my_f > her_f
+            ),
+            self.objectives != anotherSolution.objectives,
+        )
 
 
 class operatorsManagement:
@@ -287,7 +290,7 @@ class paretoClass:
         """
 
         if archiveInputFile is None:
-            self.pareto = dict()
+            self.pareto = {}
             """dict containing the pareto set. The keys are the solutions
             (class :class:`biogeme.vns.solutionClass`), and the values are
             the size of the neighborhood that must be applied the next
@@ -304,20 +307,19 @@ class paretoClass:
             """set of solutions that have been considered at some point by the
             algorithm
             """
+        elif self.restore(archiveInputFile):
+            logger.general(
+                f'Pareto set initialized from file with '
+                f'{self.length()} elements.'
+            )
         else:
-            if self.restore(archiveInputFile):
-                logger.general(
-                    f'Pareto set initialized from file with '
-                    f'{self.length()} elements.'
-                )
-            else:
-                logger.general(
-                    f'Unable to read file {archiveInputFile}. '
-                    f'Pareto set empty.'
-                )
-                self.pareto = dict()
-                self.removed = set()
-                self.considered = set()
+            logger.general(
+                f'Unable to read file {archiveInputFile}. '
+                f'Pareto set empty.'
+            )
+            self.pareto = {}
+            self.removed = set()
+            self.considered = set()
 
     def length(self):
         """

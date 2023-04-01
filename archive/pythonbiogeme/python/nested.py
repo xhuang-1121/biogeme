@@ -39,17 +39,12 @@ from mev import *
 # where \f$m\f$ is the (only) nest containing alternative \f$i\f$, and
 # \f$G\f$ is the MEV generating function.
 #
-def getMevForNested(V,availability,nests) :
+def getMevForNested(V,availability,nests):
 
-    y = {}
-    for i,v in V.items() :
-        y[i] = exp(v)
-    
+    y = {i: exp(v) for i, v in V.items()}
     Gi = {}
     for m in nests:
-        sumdict = []
-        for i in m[1]:
-            sumdict.append(Elem({0:0.0,1: y[i] ** m[0]},availability[i]!=0))
+        sumdict = [Elem({0:0.0,1: y[i] ** m[0]},availability[i]!=0) for i in m[1]]
         sum = bioMultSum(sumdict)
         for i in m[1]:
             Gi[i] = Elem({0:0,1:y[i]**(m[0]-1.0) * sum ** (1.0/m[0] - 1.0)},availability[i]!=0)
@@ -87,10 +82,9 @@ def getMevForNested(V,availability,nests) :
 # derivatives of the MEV generating function produced by the function
 # nested::getMevForNested
 #
-def nested(V,availability,nests,choice) :
+def nested(V,availability,nests,choice):
     Gi = getMevForNested(V,availability,nests)
-    P = mev(V,Gi,availability,choice) 
-    return P
+    return mev(V,Gi,availability,choice)
 
 ## Implements the log of a nested logit model as a MEV model. 
 # @ingroup models
@@ -123,10 +117,9 @@ def nested(V,availability,nests,choice) :
 # derivatives of the MEV generating function produced by the function
 # nested::getMevForNested
 #
-def lognested(V,availability,nests,choice) :
+def lognested(V,availability,nests,choice):
     Gi = getMevForNested(V,availability,nests)
-    logP = logmev(V,Gi,availability,choice) 
-    return logP
+    return logmev(V,Gi,availability,choice)
 
 
 
@@ -167,21 +160,15 @@ def lognested(V,availability,nests,choice) :
 # where \f$m\f$ is the (only) nest containing alternative \f$i\f$, and
 # \f$G\f$ is the MEV generating function.
 #
-def nestedMevMu(V,availability,nests,choice,mu) :
+def nestedMevMu(V,availability,nests,choice,mu):
 
-    y = {}
-    for i,v in V.items() :
-        y[i] = exp(v)
-    
+    y = {i: exp(v) for i, v in V.items()}
     Gi = {}
     for m in nests:
-        sum = {}
-        for i in m[1]:
-            sum[i] = Elem({0:0,1: y[i] ** m[0]},availability[i]!=0) 
+        sum = {i: Elem({0:0,1: y[i] ** m[0]},availability[i]!=0) for i in m[1]}
         for i in m[1]:
             Gi[i] = Elem({0:0,1:mu * y[i]**(m[0]-1.0) * bioMultSum(sum) ** (mu/m[0] - 1.0)},availability[i]!=0)
-    P = mev(V,Gi,availability,choice) 
-    return P
+    return mev(V,Gi,availability,choice)
 
 
 ## Implements the log of the nested logit model as a MEV model, where mu is also a
@@ -221,18 +208,12 @@ def nestedMevMu(V,availability,nests,choice,mu) :
 # where \f$m\f$ is the (only) nest containing alternative \f$i\f$, and
 # \f$G\f$ is the MEV generating function.
 #
-def lognestedMevMu(V,availability,nests,choice,mu) :
+def lognestedMevMu(V,availability,nests,choice,mu):
 
-    y = {}
-    for i,v in V.items() :
-        y[i] = exp(v)
-    
+    y = {i: exp(v) for i, v in V.items()}
     Gi = {}
     for m in nests:
-        sum = {}
-        for i in m[1]:
-            sum[i] = Elem({0:0,1: y[i] ** m[0]},availability[i]!=0) 
+        sum = {i: Elem({0:0,1: y[i] ** m[0]},availability[i]!=0) for i in m[1]}
         for i in m[1]:
             Gi[i] = Elem({0:0,1:mu * y[i]**(m[0]-1.0) * bioMultSum(sum) ** (mu/m[0] - 1.0)},availability[i]!=0)
-    logP = logmev(V,Gi,availability,choice) 
-    return logP
+    return logmev(V,Gi,availability,choice)

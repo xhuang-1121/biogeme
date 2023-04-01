@@ -450,11 +450,11 @@ class BIOGEME:
 
         # List of tuples (ell, u) containing the lower and upper bounds
         # for each free parameter
-        self.bounds = list()
-        for x in self.freeBetaNames:
-            self.bounds.append(
-                (self.allFreeBetas[x].lb, self.allFreeBetas[x].ub)
-            )
+        self.bounds = []
+        self.bounds.extend(
+            (self.allFreeBetas[x].lb, self.allFreeBetas[x].ub)
+            for x in self.freeBetaNames
+        )
         # List of ids of the free beta parameters (those to be estimated)
         self.betaIds = list(range(len(self.freeBetaNames)))
 
@@ -544,10 +544,7 @@ class BIOGEME:
             f'Log likelihood (N = {self.database.getSampleSize()}): {f:10.7g}'
         )
 
-        if scaled:
-            return f / float(self.database.getSampleSize())
-
-        return f
+        return f / float(self.database.getSampleSize()) if scaled else f
 
     def calculateLikelihoodAndDerivatives(
         self, x, scaled, hessian=False, bhhh=False, batch=None
@@ -607,12 +604,8 @@ class BIOGEME:
             x, self.fixedBetaValues, self.betaIds, g, h, bh, hessian, bhhh
         )
 
-        hmsg = ''
-        if hessian:
-            hmsg = f'Hessian norm:  {np.linalg.norm(h):10.1g}'
-        bhhhmsg = ''
-        if bhhh:
-            bhhhmsg = f'BHHH norm:  {np.linalg.norm(bh):10.1g}'
+        hmsg = f'Hessian norm:  {np.linalg.norm(h):10.1g}' if hessian else ''
+        bhhhmsg = f'BHHH norm:  {np.linalg.norm(bh):10.1g}' if bhhh else ''
         gradnorm = np.linalg.norm(g)
         self.logger.general(
             f'Log likelihood (N = {self.database.getSampleSize()}): {f:10.7g}'
@@ -978,8 +971,7 @@ class BIOGEME:
         rawResults = res.rawResults(
             self, xstar, fgHb, bootstrap=self.bootstrap_results
         )
-        r = res.bioResults(rawResults)
-        return r
+        return res.bioResults(rawResults)
 
     def validate(self, estimationResults, validationData):
         """Perform out-of-sample validation.
@@ -1073,11 +1065,9 @@ class BIOGEME:
             )
             raise excep.biogemeError(err)
 
-        results = self.algorithm(
+        return self.algorithm(
             theFunction, startingValues, self.bounds, self.algoParameters
         )
-
-        return results
 
     def simulate(self, theBetaValues=None):
         """Applies the formulas to each row of the database.
@@ -1118,7 +1108,7 @@ class BIOGEME:
                     self.logger.warning(
                         f'Parameter {x} not present in the model'
                     )
-            betaValues = list()
+            betaValues = []
             for i, x in enumerate(self.freeBetaNames):
                 if x in theBetaValues:
                     betaValues.append(theBetaValues[x])
@@ -1209,7 +1199,7 @@ class BIOGEME:
                     self.logger.warning(
                         f'Parameter {x} not present in the model'
                     )
-            betaValues = list()
+            betaValues = []
             for i, x in enumerate(self.freeBetaNames):
                 if x in theBetaValues:
                     betaValues.append(theBetaValues[x])
